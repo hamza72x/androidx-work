@@ -35,7 +35,7 @@ public interface WorkItemDao {
      * @return The {@link WorkItem} associated with that identifier
      */
     @Query("SELECT * FROM workitem WHERE id=:id")
-    WorkItem getWorkItem(int id);
+    WorkItem getWorkItem(String id);
 
     /**
      * Attempts to insert a WorkItem into the database.
@@ -48,10 +48,10 @@ public interface WorkItemDao {
     /**
      * Updates the status of a {@link WorkItem}.
      *
-     * @param id     The identifier for the {@link WorkItem}
+     * @param id The identifier for the {@link WorkItem}
      * @param status The new status
      * @return The number of rows that were updated (should be 0 or 1)
      */
     @Query("UPDATE workitem SET status=:status WHERE id=:id")
-    int setWorkItemStatus(int id, int status);
+    int setWorkItemStatus(String id, int status);
 }

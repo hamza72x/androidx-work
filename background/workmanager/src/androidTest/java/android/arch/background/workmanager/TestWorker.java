@@ -24,6 +24,6 @@ public class TestWorker extends Worker<String> {
 
     @Override
     public String doWork() {
-        return mAppContext.getPackageName();
+        return getAppContext().getPackageName();
     }
 }

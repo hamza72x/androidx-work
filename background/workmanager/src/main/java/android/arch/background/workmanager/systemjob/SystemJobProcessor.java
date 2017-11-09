@@ -39,7 +39,7 @@ class SystemJobProcessor extends Processor {
             Scheduler scheduler,
             ExecutionListener outerListener) {
         // TODO(sumir): Be more intelligent about the executor.
-        super(appContext, workDatabase, scheduler, Executors.newScheduledThreadPool(1));
+        super(appContext, workDatabase, scheduler, Executors.newSingleThreadScheduledExecutor());
         mOuterListener = outerListener;
     }
 

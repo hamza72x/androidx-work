@@ -30,12 +30,14 @@ import android.support.annotation.NonNull;
                 entity = WorkSpec.class,
                 parentColumns = "id",
                 childColumns = "work_spec_id",
-                onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
+                onDelete = ForeignKey.CASCADE,
+                onUpdate = ForeignKey.CASCADE),
         @ForeignKey(
                 entity = WorkSpec.class,
                 parentColumns = "id",
                 childColumns = "prerequisite_id",
-                onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE)},
+                onDelete = ForeignKey.CASCADE,
+                onUpdate = ForeignKey.CASCADE)},
         primaryKeys = {"work_spec_id", "prerequisite_id"})
 public class Dependency {
     @NonNull

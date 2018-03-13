@@ -39,11 +39,11 @@ public interface WorkTagDao {
     void insert(WorkTag workTag);
 
     /**
-     * Retrieves all {@link WorkSpec} id's with the given tag.
+     * Retrieves all {@link WorkSpec} ids with the given tag.
      *
      * @param tag The matching tag
-     * @return All {@link WorkSpec} id's with the given tag
+     * @return All {@link WorkSpec} ids with the given tag
      */
     @Query("SELECT work_spec_id FROM worktag WHERE tag=:tag")
-    List<String> getWorkSpecsWithTag(String tag);
+    List<String> getWorkSpecIdsWithTag(String tag);
 }

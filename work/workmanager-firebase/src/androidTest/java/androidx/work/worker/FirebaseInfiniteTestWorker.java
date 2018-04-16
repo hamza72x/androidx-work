@@ -17,7 +17,6 @@
 package androidx.work.worker;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import androidx.work.Worker;
 
@@ -31,10 +30,6 @@ public class FirebaseInfiniteTestWorker extends Worker {
     @Override
     public @NonNull WorkerResult doWork() {
         while (true) {
-            if (isInterrupted()) {
-                Log.e(TAG, "Interrupted");
-                return WorkerResult.RETRY;
-            }
         }
     }
 }

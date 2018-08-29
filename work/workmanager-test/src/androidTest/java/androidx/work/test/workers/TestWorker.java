@@ -21,6 +21,9 @@ import android.util.Log;
 
 import androidx.work.Worker;
 
+/**
+ * A test {@link Worker} that prints a log and returns a successful result.
+ */
 public class TestWorker extends Worker {
     private static final String TAG = "TestWorker";
 

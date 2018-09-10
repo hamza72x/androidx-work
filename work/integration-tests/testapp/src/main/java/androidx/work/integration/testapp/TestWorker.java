@@ -16,6 +16,7 @@
 package androidx.work.integration.testapp;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import androidx.work.Worker;
 
@@ -25,6 +26,7 @@ import androidx.work.Worker;
 public class TestWorker extends Worker {
     @Override
     public @NonNull Result doWork() {
+        Log.e("SUMIR", "dowork");
         return Result.SUCCESS;
     }
 }

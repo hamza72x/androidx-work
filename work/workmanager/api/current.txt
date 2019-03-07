@@ -153,7 +153,7 @@ package androidx.work {
 
   public interface Operation {
     method public com.google.common.util.concurrent.ListenableFuture<androidx.work.Operation.State.SUCCESS> getResult();
-    method public android.arch.lifecycle.LiveData<androidx.work.Operation.State> getState();
+    method public androidx.lifecycle.LiveData<androidx.work.Operation.State> getState();
   }
 
   public abstract static class Operation.State {
@@ -192,7 +192,7 @@ package androidx.work {
     method public static androidx.work.WorkContinuation combine(java.util.List<androidx.work.WorkContinuation>);
     method public abstract androidx.work.Operation enqueue();
     method public abstract com.google.common.util.concurrent.ListenableFuture<java.util.List<androidx.work.WorkInfo>> getWorkInfos();
-    method public abstract android.arch.lifecycle.LiveData<java.util.List<androidx.work.WorkInfo>> getWorkInfosLiveData();
+    method public abstract androidx.lifecycle.LiveData<java.util.List<androidx.work.WorkInfo>> getWorkInfosLiveData();
     method public final androidx.work.WorkContinuation then(androidx.work.OneTimeWorkRequest);
     method public abstract androidx.work.WorkContinuation then(java.util.List<androidx.work.OneTimeWorkRequest>);
   }
@@ -230,13 +230,13 @@ package androidx.work {
     method public abstract androidx.work.Operation enqueueUniqueWork(String, androidx.work.ExistingWorkPolicy, java.util.List<androidx.work.OneTimeWorkRequest>);
     method public static androidx.work.WorkManager getInstance();
     method public abstract com.google.common.util.concurrent.ListenableFuture<java.lang.Long> getLastCancelAllTimeMillis();
-    method public abstract android.arch.lifecycle.LiveData<java.lang.Long> getLastCancelAllTimeMillisLiveData();
+    method public abstract androidx.lifecycle.LiveData<java.lang.Long> getLastCancelAllTimeMillisLiveData();
     method public abstract com.google.common.util.concurrent.ListenableFuture<androidx.work.WorkInfo> getWorkInfoById(java.util.UUID);
-    method public abstract android.arch.lifecycle.LiveData<androidx.work.WorkInfo> getWorkInfoByIdLiveData(java.util.UUID);
+    method public abstract androidx.lifecycle.LiveData<androidx.work.WorkInfo> getWorkInfoByIdLiveData(java.util.UUID);
     method public abstract com.google.common.util.concurrent.ListenableFuture<java.util.List<androidx.work.WorkInfo>> getWorkInfosByTag(String);
-    method public abstract android.arch.lifecycle.LiveData<java.util.List<androidx.work.WorkInfo>> getWorkInfosByTagLiveData(String);
+    method public abstract androidx.lifecycle.LiveData<java.util.List<androidx.work.WorkInfo>> getWorkInfosByTagLiveData(String);
     method public abstract com.google.common.util.concurrent.ListenableFuture<java.util.List<androidx.work.WorkInfo>> getWorkInfosForUniqueWork(String);
-    method public abstract android.arch.lifecycle.LiveData<java.util.List<androidx.work.WorkInfo>> getWorkInfosForUniqueWorkLiveData(String);
+    method public abstract androidx.lifecycle.LiveData<java.util.List<androidx.work.WorkInfo>> getWorkInfosForUniqueWorkLiveData(String);
     method public static void initialize(android.content.Context, androidx.work.Configuration);
     method public abstract androidx.work.Operation pruneWork();
   }

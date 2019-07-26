@@ -19,12 +19,12 @@ package androidx.work
 import android.content.Context
 import android.util.Log
 import androidx.arch.core.executor.ArchTaskExecutor
-
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.work.impl.WorkDatabase
 import androidx.work.impl.WorkManagerImpl
+import androidx.work.impl.utils.SerialExecutor
 import androidx.work.impl.utils.taskexecutor.TaskExecutor
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.hamcrest.CoreMatchers.`is`
@@ -141,6 +141,7 @@ class CoroutineWorkerTest {
     class InstantWorkTaskExecutor : TaskExecutor {
 
         private val mSynchronousExecutor = SynchronousExecutor()
+        private val mSerialExecutor = SerialExecutor(mSynchronousExecutor)
 
         override fun postToMainThread(runnable: Runnable) {
             runnable.run()
@@ -151,11 +152,11 @@ class CoroutineWorkerTest {
         }
 
         override fun executeOnBackgroundThread(runnable: Runnable) {
-            runnable.run()
+            mSerialExecutor.execute(runnable)
         }
 
-        override fun getBackgroundExecutor(): Executor {
-            return mSynchronousExecutor
+        override fun getBackgroundExecutor(): SerialExecutor {
+            return mSerialExecutor
         }
     }
 

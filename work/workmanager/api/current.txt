@@ -13,6 +13,7 @@ package androidx.work {
 
   public final class Configuration {
     method public java.util.concurrent.Executor getExecutor();
+    method public androidx.work.InputMergerFactory getInputMergerFactory();
     method public int getMaxJobSchedulerId();
     method public int getMinJobSchedulerId();
     method public java.util.concurrent.Executor getTaskExecutor();
@@ -24,6 +25,7 @@ package androidx.work {
     ctor public Configuration.Builder();
     method public androidx.work.Configuration build();
     method public androidx.work.Configuration.Builder setExecutor(java.util.concurrent.Executor);
+    method public androidx.work.Configuration.Builder setInputMergerFactory(androidx.work.InputMergerFactory);
     method public androidx.work.Configuration.Builder setJobSchedulerJobIdRange(int, int);
     method public androidx.work.Configuration.Builder setMaxSchedulerLimit(int);
     method public androidx.work.Configuration.Builder setMinimumLoggingLevel(int);
@@ -62,6 +64,8 @@ package androidx.work {
 
   public final class Data {
     ctor public Data(androidx.work.Data);
+    method public <T> boolean containsKey(String, Class<T!>);
+    method public static androidx.work.Data fromByteArray(byte[]);
     method public boolean getBoolean(String, boolean);
     method public boolean[]? getBooleanArray(String);
     method public byte getByte(String, byte);
@@ -77,6 +81,7 @@ package androidx.work {
     method public long[]? getLongArray(String);
     method public String? getString(String);
     method public String![]? getStringArray(String);
+    method public byte[] toByteArray();
     field public static final androidx.work.Data! EMPTY;
     field public static final int MAX_DATA_BYTES = 10240; // 0x2800
   }
@@ -124,6 +129,11 @@ package androidx.work {
     method public abstract androidx.work.Data merge(java.util.List<androidx.work.Data!>);
   }
 
+  public abstract class InputMergerFactory {
+    ctor public InputMergerFactory();
+    method public abstract androidx.work.InputMerger? createInputMerger(String);
+  }
+
   public abstract class ListenableWorker {
     ctor @Keep public ListenableWorker(android.content.Context, androidx.work.WorkerParameters);
     method public final android.content.Context getApplicationContext();
@@ -136,6 +146,7 @@ package androidx.work {
     method @RequiresApi(24) public final java.util.List<android.net.Uri!> getTriggeredContentUris();
     method public final boolean isStopped();
     method public void onStopped();
+    method public final com.google.common.util.concurrent.ListenableFuture<java.lang.Void!> setProgressAsync(androidx.work.Data);
     method @MainThread public abstract com.google.common.util.concurrent.ListenableFuture<androidx.work.ListenableWorker.Result!> startWork();
   }
 
@@ -201,6 +212,10 @@ package androidx.work {
     ctor @RequiresApi(26) public PeriodicWorkRequest.Builder(Class<? extends androidx.work.ListenableWorker>, java.time.Duration, java.time.Duration);
   }
 
+  public interface ProgressUpdater {
+    method public com.google.common.util.concurrent.ListenableFuture<java.lang.Void!> updateProgress(android.content.Context, java.util.UUID, androidx.work.Data);
+  }
+
   public abstract class WorkContinuation {
     ctor public WorkContinuation();
     method public static androidx.work.WorkContinuation combine(java.util.List<androidx.work.WorkContinuation!>);
@@ -214,6 +229,7 @@ package androidx.work {
   public final class WorkInfo {
     method public java.util.UUID getId();
     method public androidx.work.Data getOutputData();
+    method public androidx.work.Data getProgress();
     method @IntRange(from=0) public int getRunAttemptCount();
     method public androidx.work.WorkInfo.State getState();
     method public java.util.Set<java.lang.String!> getTags();

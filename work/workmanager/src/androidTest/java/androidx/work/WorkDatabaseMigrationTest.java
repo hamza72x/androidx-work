@@ -20,12 +20,14 @@ import static android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL;
 
 import static androidx.work.impl.WorkDatabaseMigrations.MIGRATION_3_4;
 import static androidx.work.impl.WorkDatabaseMigrations.MIGRATION_4_5;
+import static androidx.work.impl.WorkDatabaseMigrations.MIGRATION_6_7;
 import static androidx.work.impl.WorkDatabaseMigrations.VERSION_1;
 import static androidx.work.impl.WorkDatabaseMigrations.VERSION_2;
 import static androidx.work.impl.WorkDatabaseMigrations.VERSION_3;
 import static androidx.work.impl.WorkDatabaseMigrations.VERSION_4;
 import static androidx.work.impl.WorkDatabaseMigrations.VERSION_5;
 import static androidx.work.impl.WorkDatabaseMigrations.VERSION_6;
+import static androidx.work.impl.WorkDatabaseMigrations.VERSION_7;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -83,6 +85,7 @@ public class WorkDatabaseMigrationTest {
     private static final String TABLE_WORKSPEC = "WorkSpec";
     private static final String TABLE_WORKTAG = "WorkTag";
     private static final String TABLE_WORKNAME = "WorkName";
+    private static final String TABLE_WORKPROGRESS = "WorkProgress";
 
     private static final String NAME = "name";
     private static final String TRIGGER_CONTENT_UPDATE_DELAY = "trigger_content_update_delay";
@@ -283,6 +286,20 @@ public class WorkDatabaseMigrationTest {
         database.close();
     }
 
+    @Test
+    @MediumTest
+    public void testMigrationVersion6To7() throws IOException {
+        SupportSQLiteDatabase database =
+                mMigrationTestHelper.createDatabase(TEST_DATABASE, VERSION_6);
+        database = mMigrationTestHelper.runMigrationsAndValidate(
+                TEST_DATABASE,
+                VERSION_7,
+                VALIDATE_DROPPED_TABLES,
+                MIGRATION_6_7);
+        assertThat(checkExists(database, TABLE_WORKPROGRESS), is(true));
+        database.close();
+    }
+
     @NonNull
     private ContentValues contentValues(String workSpecId) {
         ContentValues contentValues = new ContentValues();
@@ -290,8 +307,8 @@ public class WorkDatabaseMigrationTest {
         contentValues.put("state", WorkTypeConverters.StateIds.ENQUEUED);
         contentValues.put("worker_class_name", TestWorker.class.getName());
         contentValues.put("input_merger_class_name", OverwritingInputMerger.class.getName());
-        contentValues.put("input", Data.toByteArray(Data.EMPTY));
-        contentValues.put("output", Data.toByteArray(Data.EMPTY));
+        contentValues.put("input", Data.EMPTY.toByteArray());
+        contentValues.put("output", Data.EMPTY.toByteArray());
         contentValues.put("initial_delay", 0L);
         contentValues.put("interval_duration", 0L);
         contentValues.put("flex_duration", 0L);

@@ -35,6 +35,7 @@ import androidx.annotation.WorkerThread;
 import androidx.work.Configuration;
 import androidx.work.Data;
 import androidx.work.InputMerger;
+import androidx.work.InputMergerFactory;
 import androidx.work.ListenableWorker;
 import androidx.work.Logger;
 import androidx.work.WorkInfo;
@@ -46,6 +47,7 @@ import androidx.work.impl.model.WorkSpec;
 import androidx.work.impl.model.WorkSpecDao;
 import androidx.work.impl.model.WorkTagDao;
 import androidx.work.impl.utils.PackageManagerHelper;
+import androidx.work.impl.utils.WorkProgressUpdater;
 import androidx.work.impl.utils.futures.SettableFuture;
 import androidx.work.impl.utils.taskexecutor.TaskExecutor;
 
@@ -199,7 +201,10 @@ public class WorkerWrapper implements Runnable {
         if (mWorkSpec.isPeriodic()) {
             input = mWorkSpec.input;
         } else {
-            InputMerger inputMerger = InputMerger.fromClassName(mWorkSpec.inputMergerClassName);
+            InputMergerFactory inputMergerFactory = mConfiguration.getInputMergerFactory();
+            String inputMergerClassName = mWorkSpec.inputMergerClassName;
+            InputMerger inputMerger =
+                    inputMergerFactory.createInputMergerWithDefaultFallback(inputMergerClassName);
             if (inputMerger == null) {
                 Logger.get().error(TAG, String.format("Could not create Input Merger %s",
                         mWorkSpec.inputMergerClassName));
@@ -220,7 +225,8 @@ public class WorkerWrapper implements Runnable {
                 mWorkSpec.runAttemptCount,
                 mConfiguration.getExecutor(),
                 mWorkTaskExecutor,
-                mConfiguration.getWorkerFactory());
+                mConfiguration.getWorkerFactory(),
+                new WorkProgressUpdater(mWorkDatabase, mWorkTaskExecutor));
 
         // Not always creating a worker here, as the WorkerWrapper.Builder can set a worker override
         // in test mode.

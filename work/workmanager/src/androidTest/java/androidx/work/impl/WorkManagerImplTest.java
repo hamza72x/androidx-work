@@ -77,7 +77,6 @@ import androidx.work.Constraints;
 import androidx.work.ContentUriTriggers;
 import androidx.work.Data;
 import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.Logger;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.TestLifecycleOwner;
@@ -119,8 +118,6 @@ import java.util.concurrent.TimeUnit;
 
 @RunWith(AndroidJUnit4.class)
 public class WorkManagerImplTest {
-
-    private static final String TAG = Logger.tagWithPrefix("WorkManagerImplTest");
 
     private static final long SLEEP_DURATION_SMALL_MILLIS = 500L;
 
@@ -935,10 +932,8 @@ public class WorkManagerImplTest {
         assertThat(workInfo, is(nullValue()));
     }
 
-    // Temporarily disabled due to b/121002352.
-    // bug b/121090948 filed to keep track.
-    // @Test
-    // @MediumTest
+    @Test
+    @MediumTest
     @SuppressWarnings("unchecked")
     public void testGetWorkInfoById() {
         OneTimeWorkRequest work0 = new OneTimeWorkRequest.Builder(TestWorker.class).build();
@@ -963,12 +958,14 @@ public class WorkManagerImplTest {
                 ENQUEUED,
                 Data.EMPTY,
                 Collections.singletonList(TestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         WorkInfo workInfo1 = new WorkInfo(
                 work1.getId(),
                 ENQUEUED,
                 Data.EMPTY,
                 Collections.singletonList(TestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         assertThat(captor.getValue(), containsInAnyOrder(workInfo0, workInfo1));
 
@@ -984,6 +981,7 @@ public class WorkManagerImplTest {
                 RUNNING,
                 Data.EMPTY,
                 Collections.singletonList(TestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         assertThat(captor.getValue(), containsInAnyOrder(workInfo0, workInfo1));
 
@@ -999,6 +997,7 @@ public class WorkManagerImplTest {
                 RUNNING,
                 Data.EMPTY,
                 Collections.singletonList(TestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         assertThat(captor.getValue(), containsInAnyOrder(workInfo0, workInfo1));
 
@@ -1033,18 +1032,21 @@ public class WorkManagerImplTest {
                 RUNNING,
                 Data.EMPTY,
                 Arrays.asList(TestWorker.class.getName(), firstTag, secondTag),
+                Data.EMPTY,
                 0);
         WorkInfo workInfo1 = new WorkInfo(
                 work1.getId(),
                 BLOCKED,
                 Data.EMPTY,
                 Arrays.asList(TestWorker.class.getName(), firstTag),
+                Data.EMPTY,
                 0);
         WorkInfo workInfo2 = new WorkInfo(
                 work2.getId(),
                 SUCCEEDED,
                 Data.EMPTY,
                 Arrays.asList(TestWorker.class.getName(), secondTag),
+                Data.EMPTY,
                 0);
 
         List<WorkInfo> workInfos = mWorkManagerImpl.getWorkInfosByTag(firstTag).get();
@@ -1080,18 +1082,21 @@ public class WorkManagerImplTest {
                 RUNNING,
                 Data.EMPTY,
                 Collections.singletonList(InfiniteTestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         WorkInfo workInfo1 = new WorkInfo(
                 work1.getId(),
                 BLOCKED,
                 Data.EMPTY,
                 Collections.singletonList(InfiniteTestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         WorkInfo workInfo2 = new WorkInfo(
                 work2.getId(),
                 BLOCKED,
                 Data.EMPTY,
                 Collections.singletonList(InfiniteTestWorker.class.getName()),
+                Data.EMPTY,
                 0);
 
         List<WorkInfo> workInfos = mWorkManagerImpl.getWorkInfosForUniqueWork(uniqueName).get();
@@ -1138,18 +1143,21 @@ public class WorkManagerImplTest {
                 RUNNING,
                 Data.EMPTY,
                 Collections.singletonList(InfiniteTestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         WorkInfo workInfo1 = new WorkInfo(
                 work1.getId(),
                 BLOCKED,
                 Data.EMPTY,
                 Collections.singletonList(InfiniteTestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         WorkInfo workInfo2 = new WorkInfo(
                 work2.getId(),
                 BLOCKED,
                 Data.EMPTY,
                 Collections.singletonList(InfiniteTestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         assertThat(captor.getValue(), containsInAnyOrder(workInfo0, workInfo1, workInfo2));
 
@@ -1164,6 +1172,7 @@ public class WorkManagerImplTest {
                 ENQUEUED,
                 Data.EMPTY,
                 Collections.singletonList(InfiniteTestWorker.class.getName()),
+                Data.EMPTY,
                 0);
         assertThat(captor.getValue(), containsInAnyOrder(workInfo0, workInfo1, workInfo2));
 
@@ -1386,8 +1395,7 @@ public class WorkManagerImplTest {
     @LargeTest
     @SuppressWarnings("unchecked")
     public void testCancelAllWork_updatesLastCancelAllTimeLiveData() throws InterruptedException {
-        Preferences preferences = new Preferences(
-                (Context) ApplicationProvider.getApplicationContext());
+        Preferences preferences = new Preferences(ApplicationProvider.getApplicationContext());
         preferences.setLastCancelAllTimeMillis(0L);
 
         TestLifecycleOwner testLifecycleOwner = new TestLifecycleOwner();

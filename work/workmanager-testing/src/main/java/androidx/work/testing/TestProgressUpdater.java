@@ -19,11 +19,9 @@ package androidx.work.testing;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.work.Data;
 import androidx.work.Logger;
-import androidx.work.NotificationProvider;
 import androidx.work.ProgressUpdater;
 import androidx.work.impl.utils.futures.SettableFuture;
 
@@ -45,8 +43,7 @@ public class TestProgressUpdater implements ProgressUpdater {
     public ListenableFuture<Void> updateProgress(
             @NonNull Context context,
             @NonNull UUID id,
-            @NonNull Data data,
-            @Nullable NotificationProvider provider) {
+            @NonNull Data data) {
         Logger.get().info(TAG, String.format("Updating progress for %s (%s)", id, data));
         SettableFuture<Void> future = SettableFuture.create();
         future.set(null);

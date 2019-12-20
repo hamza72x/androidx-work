@@ -64,7 +64,6 @@ package androidx.work {
 
   public final class Data {
     ctor public Data(androidx.work.Data);
-    method public <T> boolean containsKey(String, Class<T!>);
     method public static androidx.work.Data fromByteArray(byte[]);
     method public boolean getBoolean(String, boolean);
     method public boolean[]? getBooleanArray(String);
@@ -81,6 +80,7 @@ package androidx.work {
     method public long[]? getLongArray(String);
     method public String? getString(String);
     method public String![]? getStringArray(String);
+    method public <T> boolean hasKeyWithValueOfType(String, Class<T!>);
     method public byte[] toByteArray();
     field public static final androidx.work.Data! EMPTY;
     field public static final int MAX_DATA_BYTES = 10240; // 0x2800
@@ -124,6 +124,18 @@ package androidx.work {
     enum_constant public static final androidx.work.ExistingWorkPolicy REPLACE;
   }
 
+  public final class ForegroundInfo {
+    ctor public ForegroundInfo(int, android.app.Notification);
+    ctor public ForegroundInfo(int, android.app.Notification, int);
+    method public int getForegroundServiceType();
+    method public android.app.Notification getNotification();
+    method public int getNotificationId();
+  }
+
+  public interface ForegroundUpdater {
+    method public com.google.common.util.concurrent.ListenableFuture<java.lang.Void!> setForegroundAsync(android.content.Context, java.util.UUID, androidx.work.ForegroundInfo);
+  }
+
   public abstract class InputMerger {
     ctor public InputMerger();
     method public abstract androidx.work.Data merge(java.util.List<androidx.work.Data!>);
@@ -146,6 +158,7 @@ package androidx.work {
     method @RequiresApi(24) public final java.util.List<android.net.Uri!> getTriggeredContentUris();
     method public final boolean isStopped();
     method public void onStopped();
+    method public final com.google.common.util.concurrent.ListenableFuture<java.lang.Void!> setForegroundAsync(androidx.work.ForegroundInfo);
     method public final com.google.common.util.concurrent.ListenableFuture<java.lang.Void!> setProgressAsync(androidx.work.Data);
     method @MainThread public abstract com.google.common.util.concurrent.ListenableFuture<androidx.work.ListenableWorker.Result!> startWork();
   }
@@ -254,6 +267,7 @@ package androidx.work {
     method public abstract androidx.work.Operation cancelAllWorkByTag(String);
     method public abstract androidx.work.Operation cancelUniqueWork(String);
     method public abstract androidx.work.Operation cancelWorkById(java.util.UUID);
+    method public abstract android.app.PendingIntent createCancelPendingIntent(java.util.UUID);
     method public final androidx.work.Operation enqueue(androidx.work.WorkRequest);
     method public abstract androidx.work.Operation enqueue(java.util.List<? extends androidx.work.WorkRequest>);
     method public abstract androidx.work.Operation enqueueUniquePeriodicWork(String, androidx.work.ExistingPeriodicWorkPolicy, androidx.work.PeriodicWorkRequest);
@@ -280,7 +294,7 @@ package androidx.work {
     field public static final long MIN_BACKOFF_MILLIS = 10000L; // 0x2710L
   }
 
-  public abstract static class WorkRequest.Builder<B extends androidx.work.WorkRequest.Builder, W extends androidx.work.WorkRequest> {
+  public abstract static class WorkRequest.Builder<B extends androidx.work.WorkRequest.Builder<?, ?>, W extends androidx.work.WorkRequest> {
     method public final B addTag(String);
     method public final W build();
     method public final B keepResultsForAtLeast(long, java.util.concurrent.TimeUnit);

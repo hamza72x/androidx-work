@@ -16,8 +16,14 @@
 
 package androidx.work.impl;
 
+import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
+
+import static androidx.work.impl.foreground.SystemForegroundDispatcher.createCancelWorkIntent;
+
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
@@ -45,7 +51,7 @@ import androidx.work.impl.model.WorkSpecDao;
 import androidx.work.impl.utils.CancelWorkRunnable;
 import androidx.work.impl.utils.ForceStopRunnable;
 import androidx.work.impl.utils.LiveDataUtils;
-import androidx.work.impl.utils.Preferences;
+import androidx.work.impl.utils.PreferenceUtils;
 import androidx.work.impl.utils.PruneWorkRunnable;
 import androidx.work.impl.utils.StartWorkRunnable;
 import androidx.work.impl.utils.StatusRunnable;
@@ -78,7 +84,7 @@ public class WorkManagerImpl extends WorkManager {
     private TaskExecutor mWorkTaskExecutor;
     private List<Scheduler> mSchedulers;
     private Processor mProcessor;
-    private Preferences mPreferences;
+    private PreferenceUtils mPreferenceUtils;
     private boolean mForceStopRunnableCompleted;
     private BroadcastReceiver.PendingResult mRescheduleReceiverResult;
 
@@ -167,7 +173,7 @@ public class WorkManagerImpl extends WorkManager {
                 throw new IllegalStateException("WorkManager is already initialized.  Did you "
                         + "try to initialize it manually without disabling "
                         + "WorkManagerInitializer? See "
-                        + "WorkManager#initialize(Context, Configuration) or the class level"
+                        + "WorkManager#initialize(Context, Configuration) or the class level "
                         + "Javadoc for more information.");
             }
 
@@ -285,6 +291,7 @@ public class WorkManagerImpl extends WorkManager {
      * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @NonNull
     public Context getApplicationContext() {
         return mContext;
     }
@@ -294,6 +301,7 @@ public class WorkManagerImpl extends WorkManager {
      * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @NonNull
     public WorkDatabase getWorkDatabase() {
         return mWorkDatabase;
     }
@@ -337,12 +345,12 @@ public class WorkManagerImpl extends WorkManager {
     }
 
     /**
-     * @return the {@link Preferences} used by the instance of {@link WorkManager}.
+     * @return the {@link PreferenceUtils} used by the instance of {@link WorkManager}.
      * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public @NonNull Preferences getPreferences() {
-        return mPreferences;
+    public @NonNull PreferenceUtils getPreferenceUtils() {
+        return mPreferenceUtils;
     }
 
     @Override
@@ -448,21 +456,28 @@ public class WorkManagerImpl extends WorkManager {
         return runnable.getOperation();
     }
 
+    @NonNull
+    @Override
+    public PendingIntent createCancelPendingIntent(@NonNull UUID id) {
+        Intent intent = createCancelWorkIntent(mContext, id.toString());
+        return PendingIntent.getService(mContext, 0, intent, FLAG_UPDATE_CURRENT);
+    }
+
     @Override
     public @NonNull LiveData<Long> getLastCancelAllTimeMillisLiveData() {
-        return mPreferences.getLastCancelAllTimeMillisLiveData();
+        return mPreferenceUtils.getLastCancelAllTimeMillisLiveData();
     }
 
     @Override
     public @NonNull ListenableFuture<Long> getLastCancelAllTimeMillis() {
         final SettableFuture<Long> future = SettableFuture.create();
         // Avoiding synthetic accessors.
-        final Preferences preferences = mPreferences;
+        final PreferenceUtils preferenceUtils = mPreferenceUtils;
         mWorkTaskExecutor.executeOnBackgroundThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    future.set(preferences.getLastCancelAllTimeMillis());
+                    future.set(preferenceUtils.getLastCancelAllTimeMillis());
                 } catch (Throwable throwable) {
                     future.setException(throwable);
                 }
@@ -558,7 +573,7 @@ public class WorkManagerImpl extends WorkManager {
      * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public void startWork(String workSpecId) {
+    public void startWork(@NonNull String workSpecId) {
         startWork(workSpecId, null);
     }
 
@@ -568,7 +583,9 @@ public class WorkManagerImpl extends WorkManager {
      * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public void startWork(String workSpecId, WorkerParameters.RuntimeExtras runtimeExtras) {
+    public void startWork(
+            @NonNull String workSpecId,
+            @Nullable WorkerParameters.RuntimeExtras runtimeExtras) {
         mWorkTaskExecutor
                 .executeOnBackgroundThread(
                         new StartWorkRunnable(this, workSpecId, runtimeExtras));
@@ -579,8 +596,18 @@ public class WorkManagerImpl extends WorkManager {
      * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public void stopWork(String workSpecId) {
-        mWorkTaskExecutor.executeOnBackgroundThread(new StopWorkRunnable(this, workSpecId));
+    public void stopWork(@NonNull String workSpecId) {
+        mWorkTaskExecutor.executeOnBackgroundThread(new StopWorkRunnable(this, workSpecId, false));
+    }
+
+    /**
+     * @param workSpecId The {@link WorkSpec} id to stop when running in the context of a
+     *                   foreground service.
+     * @hide
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    public void stopForegroundWork(@NonNull String workSpecId) {
+        mWorkTaskExecutor.executeOnBackgroundThread(new StopWorkRunnable(this, workSpecId, true));
     }
 
     /**
@@ -663,7 +690,7 @@ public class WorkManagerImpl extends WorkManager {
         mWorkDatabase = workDatabase;
         mSchedulers = schedulers;
         mProcessor = processor;
-        mPreferences = new Preferences(mContext);
+        mPreferenceUtils = new PreferenceUtils(workDatabase);
         mForceStopRunnableCompleted = false;
 
         // Checks for app force stops.
@@ -674,7 +701,11 @@ public class WorkManagerImpl extends WorkManager {
      * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public @NonNull List<Scheduler> createSchedulers(Context context, TaskExecutor taskExecutor) {
+    @NonNull
+    public List<Scheduler> createSchedulers(
+            @NonNull Context context,
+            @NonNull TaskExecutor taskExecutor) {
+
         return Arrays.asList(
                 Schedulers.createBestAvailableBackgroundScheduler(context, this),
                 // Specify the task executor directly here as this happens before internalInit.

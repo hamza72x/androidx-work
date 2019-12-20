@@ -48,6 +48,7 @@ import androidx.work.TestLifecycleOwner;
 import androidx.work.WorkContinuation;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManagerTest;
+import androidx.work.impl.foreground.ForegroundProcessor;
 import androidx.work.impl.model.WorkSpec;
 import androidx.work.impl.model.WorkSpecDao;
 import androidx.work.impl.utils.SynchronousExecutor;
@@ -167,6 +168,25 @@ public class WorkContinuationImplTest extends WorkManagerTest {
     }
 
     @Test
+    public void testContinuation_withEmptyNode_enqueue() throws ExecutionException,
+            InterruptedException {
+        OneTimeWorkRequest first = createTestWorker();
+        OneTimeWorkRequest second = createTestWorker();
+        WorkContinuation continuation = new WorkContinuationImpl(mWorkManagerImpl,
+                Collections.singletonList(first));
+        continuation = continuation.then(Collections.<OneTimeWorkRequest>emptyList());
+        continuation = continuation.then(Collections.singletonList(second));
+        continuation.enqueue().getResult().get();
+        WorkSpec firstWorkSpec = mDatabase.workSpecDao().getWorkSpec(first.getStringId());
+        WorkSpec secondWorkSpec = mDatabase.workSpecDao().getWorkSpec(second.getStringId());
+        assertThat(firstWorkSpec, is(notNullValue()));
+        assertThat(secondWorkSpec, is(notNullValue()));
+        List<String> prerequisites =
+                mDatabase.dependencyDao().getPrerequisites(second.getStringId());
+        assertThat(prerequisites, containsInAnyOrder(first.getStringId()));
+    }
+
+    @Test
     public void testContinuation_chainEnqueue() throws ExecutionException, InterruptedException {
         WorkContinuationImpl continuation =
                 new WorkContinuationImpl(mWorkManagerImpl, createTestWorkerList());
@@ -252,6 +272,7 @@ public class WorkContinuationImplTest extends WorkManagerTest {
 
         final String intTag = "myint";
         final String stringTag = "mystring";
+        ForegroundProcessor foregroundProcessor = mock(ForegroundProcessor.class);
 
         OneTimeWorkRequest firstWork = new OneTimeWorkRequest.Builder(TestWorker.class)
                 .setInitialState(WorkInfo.State.SUCCEEDED)
@@ -297,6 +318,7 @@ public class WorkContinuationImplTest extends WorkManagerTest {
                 context,
                 mConfiguration,
                 new InstantWorkTaskExecutor(),
+                foregroundProcessor,
                 mDatabase,
                 joinId)
                 .build()

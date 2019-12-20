@@ -16,6 +16,7 @@
 
 package androidx.work;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -29,9 +30,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A persistable set of key/value pairs which are used as inputs and outputs for
@@ -57,6 +60,7 @@ public final class Data {
      * The maximum number of bytes for Data when it is serialized (converted to a byte array).
      * Please see the class-level Javadoc for more information.
      */
+    @SuppressLint("MinMaxConstant")
     public static final int MAX_DATA_BYTES = 10 * 1024;    // 10KB
 
     @SuppressWarnings("WeakerAccess") /* synthetic access */
@@ -353,7 +357,7 @@ public final class Data {
      * @return {@code true} If the instance of {@link Data} has a value for the given
      * {@link String} key with the expected type.
      */
-    public <T> boolean containsKey(@NonNull String key, @NonNull Class<T> klass) {
+    public <T> boolean hasKeyWithValueOfType(@NonNull String key, @NonNull Class<T> klass) {
         Object value = mValues.get(key);
         return value != null && klass.isAssignableFrom(value.getClass());
     }
@@ -466,13 +470,55 @@ public final class Data {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         Data other = (Data) o;
-        return mValues.equals(other.mValues);
+        Set<String> keys = mValues.keySet();
+        if (!keys.equals(other.mValues.keySet())) {
+            return false;
+        }
+
+        for (String key : keys) {
+            Object value = mValues.get(key);
+            Object otherValue = other.mValues.get(key);
+            boolean equal;
+            if (value == null || otherValue == null) {
+                equal = value == otherValue;
+            } else if (value instanceof Object[] && otherValue instanceof Object[]) {
+                equal = Arrays.deepEquals((Object[]) value, (Object[]) otherValue);
+            } else {
+                equal = value.equals(otherValue);
+            }
+
+            if (!equal) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public int hashCode() {
         return 31 * mValues.hashCode();
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("Data {");
+        if (!mValues.isEmpty()) {
+            for (String key : mValues.keySet()) {
+                sb.append(key).append(" : ");
+                Object value = mValues.get(key);
+                if (value instanceof Object[]) {
+                    sb.append(Arrays.toString((Object[]) value));
+                } else {
+                    sb.append(value);
+                }
+                sb.append(", ");
+            }
+        }
+        sb.append("}");
+        return sb.toString();
     }
 
     @SuppressWarnings("WeakerAccess") /* synthetic access */

@@ -18,9 +18,7 @@ package androidx.work.impl.utils;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -30,22 +28,28 @@ import static org.mockito.Mockito.when;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteCantOpenDatabaseException;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.MediumTest;
 import androidx.work.Configuration;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.impl.Scheduler;
 import androidx.work.impl.WorkDatabase;
 import androidx.work.impl.WorkManagerImpl;
 import androidx.work.impl.model.WorkSpec;
-import androidx.work.impl.model.WorkSpecDao;
+import androidx.work.worker.TestWorker;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
+import java.util.concurrent.Executor;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -56,26 +60,31 @@ public class ForceStopRunnableTest {
     private Scheduler mScheduler;
     private Configuration mConfiguration;
     private WorkDatabase mWorkDatabase;
-    private WorkSpecDao mWorkSpecDao;
-    private Preferences mPreferences;
+    private PreferenceUtils mPreferenceUtils;
     private ForceStopRunnable mRunnable;
 
     @Before
     public void setUp() {
         mContext = ApplicationProvider.getApplicationContext().getApplicationContext();
         mWorkManager = mock(WorkManagerImpl.class);
-        mWorkDatabase = mock(WorkDatabase.class);
-        mWorkSpecDao = mock(WorkSpecDao.class);
-        mPreferences = mock(Preferences.class);
+        mPreferenceUtils = mock(PreferenceUtils.class);
         mScheduler = mock(Scheduler.class);
-        mConfiguration = new Configuration.Builder().build();
-
+        Executor executor = new SynchronousExecutor();
+        mConfiguration = new Configuration.Builder()
+                .setExecutor(executor)
+                .setTaskExecutor(executor)
+                .build();
+        mWorkDatabase = WorkDatabase.create(mContext, mConfiguration.getTaskExecutor(), true);
         when(mWorkManager.getWorkDatabase()).thenReturn(mWorkDatabase);
         when(mWorkManager.getSchedulers()).thenReturn(Collections.singletonList(mScheduler));
-        when(mWorkDatabase.workSpecDao()).thenReturn(mWorkSpecDao);
-        when(mWorkManager.getPreferences()).thenReturn(mPreferences);
+        when(mWorkManager.getPreferenceUtils()).thenReturn(mPreferenceUtils);
         when(mWorkManager.getConfiguration()).thenReturn(mConfiguration);
         mRunnable = new ForceStopRunnable(mContext, mWorkManager);
+    }
+
+    @After
+    public void tearDown() {
+        mWorkDatabase.close();
     }
 
     @Test
@@ -112,7 +121,7 @@ public class ForceStopRunnableTest {
         ForceStopRunnable runnable = spy(mRunnable);
         when(runnable.shouldRescheduleWorkers()).thenReturn(true);
         runnable.run();
-        verify(mPreferences, times(1)).setNeedsReschedule(false);
+        verify(mPreferenceUtils, times(1)).setNeedsReschedule(false);
     }
 
     @Test
@@ -120,18 +129,24 @@ public class ForceStopRunnableTest {
         ForceStopRunnable runnable = spy(mRunnable);
         when(runnable.shouldRescheduleWorkers()).thenReturn(false);
         when(runnable.isForceStopped()).thenReturn(false);
-        String id = "id";
-        String worker = "Worker";
-        WorkSpec workSpec = new WorkSpec(id, worker);
-
-        when(mWorkSpecDao.getRunningWork()).thenReturn(Collections.singletonList(workSpec));
-        when(mWorkSpecDao.getEligibleWorkForScheduling(anyInt())).thenReturn(
-                Collections.singletonList(workSpec));
-
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(TestWorker.class)
+                .setInitialState(WorkInfo.State.RUNNING)
+                .build();
+        WorkSpec workSpec = request.getWorkSpec();
+        mWorkDatabase.workSpecDao().insertWorkSpec(workSpec);
         runnable.run();
-        verify(mWorkSpecDao, times(2))
-                .markWorkSpecScheduled(eq(id), anyLong());
+        WorkSpec updatedWorkSpec = mWorkDatabase.workSpecDao().getWorkSpec(workSpec.id);
+        assertThat(updatedWorkSpec.scheduleRequestedAt, is(greaterThan(0L)));
+        ArgumentCaptor<WorkSpec> captor = ArgumentCaptor.forClass(WorkSpec.class);
+        verify(mScheduler, times(1)).schedule(captor.capture());
+        assertThat(workSpec.id, is(captor.getValue().id));
+    }
 
-        verify(mScheduler, times(1)).schedule(eq(workSpec));
+    @Test(expected = IllegalStateException.class)
+    public void test_rethrowForNonRecoverableSqliteExceptions() {
+        ForceStopRunnable runnable = spy(mRunnable);
+        when(runnable.cleanUp())
+                .thenThrow(new SQLiteCantOpenDatabaseException("Cannot open database."));
+        runnable.run();
     }
 }

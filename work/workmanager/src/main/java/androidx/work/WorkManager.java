@@ -16,6 +16,7 @@
 
 package androidx.work;
 
+import android.app.PendingIntent;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -439,6 +440,15 @@ public abstract class WorkManager {
      * completed
      */
     public abstract @NonNull Operation cancelAllWork();
+
+    /**
+     * Creates a {@link PendingIntent} which can be used to cancel a {@link WorkRequest} with the
+     * given {@code id}.
+     *
+     * @param id      The {@link WorkRequest} id.
+     * @return The {@link PendingIntent} that can be used to cancel the {@link WorkRequest}.
+     */
+    public abstract @NonNull PendingIntent createCancelPendingIntent(@NonNull UUID id);
 
     /**
      * Prunes all eligible finished work from the internal database.  Eligible work must be finished

@@ -52,6 +52,7 @@ import androidx.test.filters.LargeTest;
 import androidx.test.filters.MediumTest;
 import androidx.test.filters.SdkSuppress;
 import androidx.test.filters.SmallTest;
+import androidx.testutils.RepeatRule;
 import androidx.work.ArrayCreatingInputMerger;
 import androidx.work.Configuration;
 import androidx.work.Data;
@@ -89,6 +90,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -135,6 +137,9 @@ public class WorkerWrapperTest extends DatabaseTest {
     public void tearDown() {
         mDatabase.close();
     }
+
+    @Rule
+    public RepeatRule mRepeatRule = new RepeatRule();
 
     @Test
     @SmallTest
@@ -971,7 +976,7 @@ public class WorkerWrapperTest extends DatabaseTest {
         FutureListener listener = createAndAddFutureListener(workerWrapper);
         Executors.newSingleThreadExecutor().submit(workerWrapper);
         workerWrapper.interrupt();
-        Thread.sleep(6000L);
+        Thread.sleep(1000L);
         assertThat(listener.mResult, is(true));
     }
 
@@ -1271,6 +1276,18 @@ public class WorkerWrapperTest extends DatabaseTest {
         workerWrapper.run();
         WorkSpec workSpec = mWorkSpecDao.getWorkSpec(work.getStringId());
         assertThat(workSpec.scheduleRequestedAt, is(-1L));
+    }
+
+    @Test
+    @SmallTest
+    public void testWorkRequest_withInvalidClassName() {
+        OneTimeWorkRequest work =
+                new OneTimeWorkRequest.Builder(TestWorker.class).build();
+        work.getWorkSpec().workerClassName = "Bad class name";
+        insertWork(work);
+        WorkerWrapper workerWrapper = createBuilder(work.getStringId()).build();
+        workerWrapper.run();
+        assertThat(mWorkSpecDao.getState(work.getStringId()), is(FAILED));
     }
 
     private WorkerWrapper.Builder createBuilder(String workSpecId) {

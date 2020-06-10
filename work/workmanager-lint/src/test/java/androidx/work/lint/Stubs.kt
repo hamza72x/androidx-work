@@ -21,14 +21,26 @@ import com.android.tools.lint.checks.infrastructure.LintDetectorTest.kotlin
 import com.android.tools.lint.checks.infrastructure.TestFile
 
 object Stubs {
+
+    val WORKER_FACTORY: TestFile = kotlin(
+        "androidx/work/WorkerFactory.kt", """
+        package androidx.work
+
+        open class WorkerFactory
+    """
+    ).indented().within("src")
+
     val WORK_MANAGER_CONFIGURATION_PROVIDER: TestFile = java(
         "androidx/work/Configuration.java",
         """
-                 package androidx.work;
+                 package androidx.work; 
 
                  class Configuration {
                     static class Builder {
                         void setJobSchedulerJobIdRange(int minId, int maxId) {
+
+                        }
+                        void setWorkerFactory(WorkerFactory factory) {
 
                         }
                     }
@@ -59,6 +71,23 @@ object Stubs {
             package androidx.work
 
             open class ListenableWorker
+        """
+    ).indented().within("src")
+
+    val RX_WORKER: TestFile = kotlin(
+        "androidx/work/RxWorker.kt",
+        """
+            package androidx.work
+
+            open class RxWorker: ListenableWorker() {
+                fun setProgress() {
+
+                }
+
+                fun setCompletableProgress() {
+
+                }
+            }
         """
     ).indented().within("src")
 
@@ -113,6 +142,23 @@ object Stubs {
                 }
             }
         """
+    ).indented().within("src")
+
+    val CONSTRAINTS: TestFile = java(
+        "androidx/work/Constraints.java", """
+        package androidx.work;
+
+        class Constraints {
+            public static class Builder {
+                public Builder setRequiresDeviceIdle(boolean requiresDeviceIdle) {
+                    return this;
+                }
+                public Builder setRequiresCharging(boolean requiresDeviceIdle) {
+                    return this;
+                }
+            }
+        }
+    """
     ).indented().within("src")
 
     val NOTIFICATION: TestFile = kotlin(

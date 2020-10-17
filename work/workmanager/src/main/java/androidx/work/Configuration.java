@@ -25,6 +25,7 @@ import android.util.Log;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.work.impl.DefaultRunnableScheduler;
 import androidx.work.impl.Scheduler;
@@ -62,6 +63,10 @@ public final class Configuration {
     final @NonNull InputMergerFactory mInputMergerFactory;
     @SuppressWarnings("WeakerAccess")
     final @NonNull RunnableScheduler mRunnableScheduler;
+    @SuppressWarnings("WeakerAccess")
+    final @Nullable InitializationExceptionHandler mExceptionHandler;
+    @SuppressWarnings("WeakerAccess")
+    final @Nullable String mDefaultProcessName;
     @SuppressWarnings("WeakerAccess")
     final int mLoggingLevel;
     @SuppressWarnings("WeakerAccess")
@@ -112,6 +117,8 @@ public final class Configuration {
         mMinJobSchedulerId = builder.mMinJobSchedulerId;
         mMaxJobSchedulerId = builder.mMaxJobSchedulerId;
         mMaxSchedulerLimit = builder.mMaxSchedulerLimit;
+        mExceptionHandler = builder.mExceptionHandler;
+        mDefaultProcessName = builder.mDefaultProcessName;
     }
 
     /**
@@ -202,6 +209,14 @@ public final class Configuration {
     }
 
     /**
+     * @return The {@link String} name of the process where work should be scheduled.
+     */
+    @Nullable
+    public String getDefaultProcessName() {
+        return mDefaultProcessName;
+    }
+
+    /**
      * Gets the maximum number of system requests that can be made by {@link WorkManager} when using
      * {@link android.app.job.JobScheduler} or {@link android.app.AlarmManager}.
      *
@@ -229,6 +244,17 @@ public final class Configuration {
         return mIsUsingDefaultTaskExecutor;
     }
 
+    /**
+     * @return the {@link InitializationExceptionHandler} that can be used to intercept
+     * exceptions caused when trying to initialize {@link WorkManager}.
+     * @hide
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @Nullable
+    public InitializationExceptionHandler getExceptionHandler() {
+        return mExceptionHandler;
+    }
+
     private @NonNull Executor createDefaultExecutor() {
         return Executors.newFixedThreadPool(
                 // This value is the same as the core pool size for AsyncTask#THREAD_POOL_EXECUTOR.
@@ -245,6 +271,8 @@ public final class Configuration {
         InputMergerFactory mInputMergerFactory;
         Executor mTaskExecutor;
         RunnableScheduler mRunnableScheduler;
+        @Nullable InitializationExceptionHandler mExceptionHandler;
+        @Nullable String mDefaultProcessName;
 
         int mLoggingLevel;
         int mMinJobSchedulerId;
@@ -281,6 +309,8 @@ public final class Configuration {
             mMaxJobSchedulerId = configuration.mMaxJobSchedulerId;
             mMaxSchedulerLimit = configuration.mMaxSchedulerLimit;
             mRunnableScheduler = configuration.mRunnableScheduler;
+            mExceptionHandler = configuration.mExceptionHandler;
+            mDefaultProcessName = configuration.mDefaultProcessName;
         }
 
         /**
@@ -422,6 +452,34 @@ public final class Configuration {
         @NonNull
         public Builder setRunnableScheduler(@NonNull RunnableScheduler runnableScheduler) {
             mRunnableScheduler = runnableScheduler;
+            return this;
+        }
+
+        /**
+         * Specifies the {@link InitializationExceptionHandler} that can be used to intercept
+         * exceptions caused when trying to initialize  {@link WorkManager}.
+         *
+         * @param exceptionHandler The {@link InitializationExceptionHandler} instance.
+         * @return This {@link Builder} instance
+         * @hide
+         */
+        @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+        @NonNull
+        public Builder setInitializationExceptionHandler(
+                @NonNull InitializationExceptionHandler exceptionHandler) {
+            mExceptionHandler = exceptionHandler;
+            return this;
+        }
+
+        /**
+         * Designates the primary process that {@link WorkManager} should schedule work in.
+         *
+         * @param processName The {@link String} process name.
+         * @return This {@link Builder} instance
+         */
+        @NonNull
+        public Builder setDefaultProcessName(@NonNull String processName) {
+            mDefaultProcessName = processName;
             return this;
         }
 

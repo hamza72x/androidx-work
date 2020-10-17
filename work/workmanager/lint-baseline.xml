@@ -1,5 +1,423 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 3.6.0-beta05" client="gradle" variant="debug" version="3.6.0-beta05">
+<issues format="5" by="lint 4.2.0-alpha06" client="gradle" variant="debug" version="4.2.0-alpha06">
+
+    <issue
+        id="BanSynchronizedMethods"
+        message="Use of synchronized methods is not recommended"
+        errorLine1="                            @Override"
+        errorLine2="                            ^">
+        <location
+            file="src/main/java/androidx/work/impl/utils/futures/AbstractFuture.java"
+            line="226"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="BanSynchronizedMethods"
+        message="Use of synchronized methods is not recommended"
+        errorLine1="    /**"
+        errorLine2="    ^">
+        <location
+            file="src/main/java/androidx/work/Logger.java"
+            line="41"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="BanSynchronizedMethods"
+        message="Use of synchronized methods is not recommended"
+        errorLine1="    /**"
+        errorLine2="    ^">
+        <location
+            file="src/main/java/androidx/work/Logger.java"
+            line="65"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="BanSynchronizedMethods"
+        message="Use of synchronized methods is not recommended"
+        errorLine1="    /**"
+        errorLine2="    ^">
+        <location
+            file="src/main/java/androidx/work/impl/constraints/trackers/Trackers.java"
+            line="34"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="BanSynchronizedMethods"
+        message="Use of synchronized methods is not recommended"
+        errorLine1="    /**"
+        errorLine2="    ^">
+        <location
+            file="src/main/java/androidx/work/impl/constraints/trackers/Trackers.java"
+            line="48"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="BanSynchronizedMethods"
+        message="Use of synchronized methods is not recommended"
+        errorLine1="    @VisibleForTesting"
+        errorLine2="    ^">
+        <location
+            file="src/main/java/androidx/work/impl/utils/WorkTimer.java"
+            line="123"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="BanSynchronizedMethods"
+        message="Use of synchronized methods is not recommended"
+        errorLine1="    @VisibleForTesting"
+        errorLine2="    ^">
+        <location
+            file="src/main/java/androidx/work/impl/utils/WorkTimer.java"
+            line="129"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 19, the call containing class androidx.work.impl.background.systemalarm.Alarms is not annotated with @RequiresApi(x) where x is at least 19. Either annotate the containing class with at least @RequiresApi(19) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(19)."
+        errorLine1="                alarmManager.setExact(RTC_WAKEUP, triggerAtMillis, pendingIntent);"
+        errorLine2="                             ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemalarm/Alarms.java"
+            line="128"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.Constraints.Builder is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            mTriggerContentUpdateDelay = duration.toMillis();"
+        errorLine2="                                                  ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/Constraints.java"
+            line="408"
+            column="51"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.Constraints.Builder is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            mTriggerContentMaxDelay = duration.toMillis();"
+        errorLine2="                                               ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/Constraints.java"
+            line="443"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 19, the call containing class androidx.work.impl.utils.ForceStopRunnable is not annotated with @RequiresApi(x) where x is at least 19. Either annotate the containing class with at least @RequiresApi(19) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(19)."
+        errorLine1="                alarmManager.setExact(RTC_WAKEUP, triggerAt, pendingIntent);"
+        errorLine2="                             ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/utils/ForceStopRunnable.java"
+            line="252"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.constraints.trackers.NetworkStateTracker is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="                mConnectivityManager.registerDefaultNetworkCallback(mNetworkCallback);"
+        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/constraints/trackers/NetworkStateTracker.java"
+            line="89"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 21, the call containing class androidx.work.impl.constraints.trackers.NetworkStateTracker is not annotated with @RequiresApi(x) where x is at least 21. Either annotate the containing class with at least @RequiresApi(21) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(21)."
+        errorLine1="                mConnectivityManager.unregisterNetworkCallback(mNetworkCallback);"
+        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/constraints/trackers/NetworkStateTracker.java"
+            line="112"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 23, the call containing class androidx.work.impl.constraints.trackers.NetworkStateTracker is not annotated with @RequiresApi(x) where x is at least 23. Either annotate the containing class with at least @RequiresApi(23) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(23)."
+        errorLine1="            Network network = mConnectivityManager.getActiveNetwork();"
+        errorLine2="                                                   ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/constraints/trackers/NetworkStateTracker.java"
+            line="151"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 21, the call containing class androidx.work.impl.constraints.trackers.NetworkStateTracker is not annotated with @RequiresApi(x) where x is at least 21. Either annotate the containing class with at least @RequiresApi(21) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(21)."
+        errorLine1="            NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(network);"
+        errorLine2="                                                                    ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/constraints/trackers/NetworkStateTracker.java"
+            line="152"
+            column="69"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 21, the call containing class androidx.work.impl.constraints.trackers.NetworkStateTracker is not annotated with @RequiresApi(x) where x is at least 21. Either annotate the containing class with at least @RequiresApi(21) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(21)."
+        errorLine1="                    &amp;&amp; capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);"
+        errorLine2="                                    ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/constraints/trackers/NetworkStateTracker.java"
+            line="154"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.PeriodicWorkRequest.Builder is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            mWorkSpec.setPeriodic(repeatInterval.toMillis());"
+        errorLine2="                                                 ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/PeriodicWorkRequest.java"
+            line="118"
+            column="50"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.PeriodicWorkRequest.Builder is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            mWorkSpec.setPeriodic(repeatInterval.toMillis(), flexInterval.toMillis());"
+        errorLine2="                                                 ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/PeriodicWorkRequest.java"
+            line="181"
+            column="50"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.PeriodicWorkRequest.Builder is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            mWorkSpec.setPeriodic(repeatInterval.toMillis(), flexInterval.toMillis());"
+        errorLine2="                                                                          ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/PeriodicWorkRequest.java"
+            line="181"
+            column="75"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 28, the call containing class androidx.work.impl.utils.ProcessUtils is not annotated with @RequiresApi(x) where x is at least 28. Either annotate the containing class with at least @RequiresApi(28) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(28)."
+        errorLine1="            return Application.getProcessName();"
+        errorLine2="                               ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/utils/ProcessUtils.java"
+            line="74"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 29, the call containing class null is not annotated with @RequiresApi(x) where x is at least 29. Either annotate the containing class with at least @RequiresApi(29) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(29)."
+        errorLine1="                    startForeground(notificationId, notification, notificationType);"
+        errorLine2="                    ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/foreground/SystemForegroundService.java"
+            line="137"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 28, the call containing class androidx.work.impl.background.systemjob.SystemJobInfoConverter is not annotated with @RequiresApi(x) where x is at least 28. Either annotate the containing class with at least @RequiresApi(28) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(28)."
+        errorLine1="                builder.setImportantWhileForeground(true);"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobInfoConverter.java"
+            line="102"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.background.systemjob.SystemJobInfoConverter is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="                builder.addTriggerContentUri(convertContentUriTrigger(trigger));"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobInfoConverter.java"
+            line="109"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.background.systemjob.SystemJobInfoConverter is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="            builder.setTriggerContentUpdateDelay(constraints.getTriggerContentUpdateDelay());"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobInfoConverter.java"
+            line="111"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.background.systemjob.SystemJobInfoConverter is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="            builder.setTriggerContentMaxDelay(constraints.getTriggerMaxContentDelay());"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobInfoConverter.java"
+            line="112"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.impl.background.systemjob.SystemJobInfoConverter is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            builder.setRequiresBatteryNotLow(constraints.requiresBatteryNotLow());"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobInfoConverter.java"
+            line="119"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.impl.background.systemjob.SystemJobInfoConverter is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            builder.setRequiresStorageNotLow(constraints.requiresStorageNotLow());"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobInfoConverter.java"
+            line="120"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.background.systemjob.SystemJobInfoConverter is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="        return new JobInfo.TriggerContentUri(trigger.getUri(), flag);"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobInfoConverter.java"
+            line="130"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.background.systemjob.SystemJobService is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="            if (params.getTriggeredContentUris() != null) {"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobService.java"
+            line="125"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.background.systemjob.SystemJobService is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="                        Arrays.asList(params.getTriggeredContentUris());"
+        errorLine2="                                             ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobService.java"
+            line="127"
+            column="46"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.background.systemjob.SystemJobService is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="            if (params.getTriggeredContentAuthorities() != null) {"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobService.java"
+            line="129"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.background.systemjob.SystemJobService is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="                        Arrays.asList(params.getTriggeredContentAuthorities());"
+        errorLine2="                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobService.java"
+            line="131"
+            column="46"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 28, the call containing class androidx.work.impl.background.systemjob.SystemJobService is not annotated with @RequiresApi(x) where x is at least 28. Either annotate the containing class with at least @RequiresApi(28) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(28)."
+        errorLine1="                runtimeExtras.network = params.getNetwork();"
+        errorLine2="                                               ~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/background/systemjob/SystemJobService.java"
+            line="134"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 21, the call containing class androidx.work.impl.WorkDatabasePathHelper is not annotated with @RequiresApi(x) where x is at least 21. Either annotate the containing class with at least @RequiresApi(21) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(21)."
+        errorLine1="        return new File(context.getNoBackupFilesDir(), filePath);"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/WorkDatabasePathHelper.java"
+            line="145"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 24, the call containing class androidx.work.impl.WorkManagerImpl is not annotated with @RequiresApi(x) where x is at least 24. Either annotate the containing class with at least @RequiresApi(24) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(24)."
+        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &amp;&amp; context.isDeviceProtectedStorage()) {"
+        errorLine2="                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/impl/WorkManagerImpl.java"
+            line="759"
+            column="71"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.WorkRequest.Builder is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            mWorkSpec.setBackoffDelayDuration(duration.toMillis());"
+        errorLine2="                                                       ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/WorkRequest.java"
+            line="174"
+            column="56"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.WorkRequest.Builder is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            mWorkSpec.minimumRetentionDuration = duration.toMillis();"
+        errorLine2="                                                          ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/WorkRequest.java"
+            line="251"
+            column="59"/>
+    </issue>
+
+    <issue
+        id="UnsafeNewApiCall"
+        message="This call is to a method from API 26, the call containing class androidx.work.WorkRequest.Builder is not annotated with @RequiresApi(x) where x is at least 26. Either annotate the containing class with at least @RequiresApi(26) or move the call to a static method in a wrapper class annotated with at least @RequiresApi(26)."
+        errorLine1="            mWorkSpec.initialDelay = duration.toMillis();"
+        errorLine2="                                              ~~~~~~~~">
+        <location
+            file="src/main/java/androidx/work/WorkRequest.java"
+            line="283"
+            column="47"/>
+    </issue>
 
     <issue
         id="KotlinPropertyAccess"
@@ -258,7 +676,7 @@
         errorLine2="           ~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/constraints/trackers/BatteryNotLowTracker.java"
-            line="63"
+            line="58"
             column="12"/>
     </issue>
 
@@ -269,7 +687,7 @@
         errorLine2="           ~~~~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/constraints/trackers/BatteryNotLowTracker.java"
-            line="82"
+            line="78"
             column="12"/>
     </issue>
 
@@ -280,7 +698,7 @@
         errorLine2="                                   ~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/constraints/trackers/BatteryNotLowTracker.java"
-            line="90"
+            line="86"
             column="36"/>
     </issue>
 
@@ -533,7 +951,7 @@
         errorLine2="           ~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/utils/EnqueueRunnable.java"
-            line="104"
+            line="106"
             column="12"/>
     </issue>
 
@@ -544,7 +962,7 @@
         errorLine2="                              ~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/utils/ForceStopRunnable.java"
-            line="220"
+            line="271"
             column="31"/>
     </issue>
 
@@ -555,7 +973,7 @@
         errorLine2="                                               ~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/utils/ForceStopRunnable.java"
-            line="220"
+            line="271"
             column="48"/>
     </issue>
 
@@ -1028,7 +1446,7 @@
         errorLine2="           ~~~~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/constraints/trackers/NetworkStateTracker.java"
-            line="79"
+            line="80"
             column="12"/>
     </issue>
 
@@ -1200,61 +1618,6 @@
     <issue
         id="UnknownNullness"
         message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    public ListenableFuture&lt;T> getFuture() {"
-        errorLine2="           ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/utils/StatusRunnable.java"
-            line="56"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    public static StatusRunnable&lt;List&lt;WorkInfo>> forStringIds("
-        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/utils/StatusRunnable.java"
-            line="68"
-            column="19"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    public static StatusRunnable&lt;WorkInfo> forUUID("
-        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/utils/StatusRunnable.java"
-            line="92"
-            column="19"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    public static StatusRunnable&lt;List&lt;WorkInfo>> forTag("
-        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/utils/StatusRunnable.java"
-            line="116"
-            column="19"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    public static StatusRunnable&lt;List&lt;WorkInfo>> forUniqueWork("
-        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/utils/StatusRunnable.java"
-            line="140"
-            column="19"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
         errorLine1="    public Boolean getInitialState() {"
         errorLine2="           ~~~~~~~">
         <location
@@ -1303,7 +1666,7 @@
         errorLine2="            ~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/background/systemjob/SystemJobScheduler.java"
-            line="72"
+            line="77"
             column="13"/>
     </issue>
 
@@ -1314,7 +1677,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/background/systemjob/SystemJobScheduler.java"
-            line="73"
+            line="78"
             column="13"/>
     </issue>
 
@@ -1325,7 +1688,7 @@
         errorLine2="            ~~~~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/background/systemjob/SystemJobScheduler.java"
-            line="74"
+            line="79"
             column="13"/>
     </issue>
 
@@ -1336,7 +1699,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/background/systemjob/SystemJobScheduler.java"
-            line="75"
+            line="80"
             column="13"/>
     </issue>
 
@@ -1347,7 +1710,7 @@
         errorLine2="                                 ~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/background/systemjob/SystemJobScheduler.java"
-            line="175"
+            line="180"
             column="34"/>
     </issue>
 
@@ -1465,21 +1828,10 @@
         id="UnknownNullness"
         message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
         errorLine1="    public static Set&lt;String> prerequisitesFor(WorkContinuationImpl continuation) {"
-        errorLine2="                  ~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/WorkContinuationImpl.java"
-            line="275"
-            column="19"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    public static Set&lt;String> prerequisitesFor(WorkContinuationImpl continuation) {"
         errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/WorkContinuationImpl.java"
-            line="275"
+            line="276"
             column="48"/>
     </issue>
 
@@ -1523,7 +1875,7 @@
         errorLine2="                ~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/model/WorkNameDao.java"
-            line="39"
+            line="40"
             column="17"/>
     </issue>
 
@@ -1534,7 +1886,7 @@
         errorLine2="    ~~~~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/model/WorkNameDao.java"
-            line="48"
+            line="49"
             column="5"/>
     </issue>
 
@@ -1545,7 +1897,7 @@
         errorLine2="                                        ~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/model/WorkNameDao.java"
-            line="48"
+            line="49"
             column="41"/>
     </issue>
 
@@ -1635,446 +1987,6 @@
             file="src/main/java/androidx/work/impl/model/WorkSpec.java"
             line="420"
             column="16"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    void insertWorkSpec(WorkSpec workSpec);"
-        errorLine2="                        ~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="45"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    void delete(String id);"
-        errorLine2="                ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="53"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    WorkSpec getWorkSpec(String id);"
-        errorLine2="    ~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="60"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    WorkSpec getWorkSpec(String id);"
-        errorLine2="                         ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="60"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    WorkSpec[] getWorkSpecs(List&lt;String> ids);"
-        errorLine2="    ~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="69"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    WorkSpec[] getWorkSpecs(List&lt;String> ids);"
-        errorLine2="                            ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="69"
-            column="29"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec.IdAndState> getWorkSpecIdAndStatesForName(String name);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="79"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec.IdAndState> getWorkSpecIdAndStatesForName(String name);"
-        errorLine2="                                                            ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="79"
-            column="61"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;String> getAllWorkSpecIds();"
-        errorLine2="    ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="85"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    int setState(WorkInfo.State state, String... ids);"
-        errorLine2="                 ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="95"
-            column="18"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    int setState(WorkInfo.State state, String... ids);"
-        errorLine2="                                       ~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="95"
-            column="40"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    void setOutput(String id, Data output);"
-        errorLine2="                   ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="104"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    void setOutput(String id, Data output);"
-        errorLine2="                              ~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="104"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    void setPeriodStartTime(String id, long periodStartTime);"
-        errorLine2="                            ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="113"
-            column="29"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    int incrementWorkSpecRunAttemptCount(String id);"
-        errorLine2="                                         ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="122"
-            column="42"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    int resetWorkSpecRunAttemptCount(String id);"
-        errorLine2="                                     ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="131"
-            column="38"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    WorkInfo.State getState(String id);"
-        errorLine2="    ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="140"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    WorkInfo.State getState(String id);"
-        errorLine2="                            ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="140"
-            column="29"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    WorkSpec.WorkInfoPojo getWorkStatusPojoForId(String id);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="150"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    WorkSpec.WorkInfoPojo getWorkStatusPojoForId(String id);"
-        errorLine2="                                                 ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="150"
-            column="50"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec.WorkInfoPojo> getWorkStatusPojoForIds(List&lt;String> ids);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="161"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec.WorkInfoPojo> getWorkStatusPojoForIds(List&lt;String> ids);"
-        errorLine2="                                                        ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="161"
-            column="57"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    LiveData&lt;List&lt;WorkSpec.WorkInfoPojo>> getWorkStatusPojoLiveDataForIds(List&lt;String> ids);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="172"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    LiveData&lt;List&lt;WorkSpec.WorkInfoPojo>> getWorkStatusPojoLiveDataForIds(List&lt;String> ids);"
-        errorLine2="                                                                          ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="172"
-            column="75"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec.WorkInfoPojo> getWorkStatusPojoForTag(String tag);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="183"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec.WorkInfoPojo> getWorkStatusPojoForTag(String tag);"
-        errorLine2="                                                        ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="183"
-            column="57"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    LiveData&lt;List&lt;WorkSpec.WorkInfoPojo>> getWorkStatusPojoLiveDataForTag(String tag);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="195"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    LiveData&lt;List&lt;WorkSpec.WorkInfoPojo>> getWorkStatusPojoLiveDataForTag(String tag);"
-        errorLine2="                                                                          ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="195"
-            column="75"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec.WorkInfoPojo> getWorkStatusPojoForName(String name);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="206"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec.WorkInfoPojo> getWorkStatusPojoForName(String name);"
-        errorLine2="                                                         ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="206"
-            column="58"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    LiveData&lt;List&lt;WorkSpec.WorkInfoPojo>> getWorkStatusPojoLiveDataForName(String name);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="218"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    LiveData&lt;List&lt;WorkSpec.WorkInfoPojo>> getWorkStatusPojoLiveDataForName(String name);"
-        errorLine2="                                                                           ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="218"
-            column="76"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;Data> getInputsFromPrerequisites(String id);"
-        errorLine2="    ~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="229"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;Data> getInputsFromPrerequisites(String id);"
-        errorLine2="                                          ~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="229"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;String> getUnfinishedWorkWithTag(@NonNull String tag);"
-        errorLine2="    ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="239"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;String> getUnfinishedWorkWithName(@NonNull String name);"
-        errorLine2="    ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="249"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;String> getAllUnfinishedWork();"
-        errorLine2="    ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="257"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec> getEligibleWorkForScheduling(int schedulerLimit);"
-        errorLine2="    ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="292"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec> getScheduledWork();"
-        errorLine2="    ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="303"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="UnknownNullness"
-        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://android.github.io/kotlin-guides/interop.html#nullability-annotations"
-        errorLine1="    List&lt;WorkSpec> getRunningWork();"
-        errorLine2="    ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/androidx/work/impl/model/WorkSpecDao.java"
-            line="312"
-            column="5"/>
     </issue>
 
     <issue
@@ -2260,7 +2172,7 @@
         errorLine2="               ~~~~~~~~~~~~~">
         <location
             file="src/main/java/androidx/work/impl/WorkerWrapper.java"
-            line="688"
+            line="681"
             column="16"/>
     </issue>
 

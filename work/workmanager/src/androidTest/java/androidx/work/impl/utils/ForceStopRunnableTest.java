@@ -16,9 +16,14 @@
 
 package androidx.work.impl.utils;
 
+import static androidx.work.impl.utils.ForceStopRunnable.MAX_ATTEMPTS;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -33,12 +38,15 @@ import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.MediumTest;
+import androidx.test.filters.SdkSuppress;
 import androidx.work.Configuration;
+import androidx.work.InitializationExceptionHandler;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.impl.Scheduler;
 import androidx.work.impl.WorkDatabase;
 import androidx.work.impl.WorkManagerImpl;
+import androidx.work.impl.model.SystemIdInfo;
 import androidx.work.impl.model.WorkSpec;
 import androidx.work.worker.TestWorker;
 
@@ -142,11 +150,48 @@ public class ForceStopRunnableTest {
         assertThat(workSpec.id, is(captor.getValue().id));
     }
 
+    @Test
+    @SdkSuppress(minSdkVersion = 23)
+    public void testReconcileJobs() {
+        ForceStopRunnable runnable = spy(mRunnable);
+        when(runnable.shouldRescheduleWorkers()).thenReturn(false);
+        when(runnable.isForceStopped()).thenReturn(false);
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(TestWorker.class)
+                .setInitialState(WorkInfo.State.ENQUEUED)
+                .build();
+        WorkSpec workSpec = request.getWorkSpec();
+        mWorkDatabase.workSpecDao().insertWorkSpec(workSpec);
+        mWorkDatabase.systemIdInfoDao().insertSystemIdInfo(new SystemIdInfo(workSpec.id, 0));
+        runnable.run();
+        ArgumentCaptor<WorkSpec> captor = ArgumentCaptor.forClass(WorkSpec.class);
+        verify(mScheduler, times(1)).schedule(captor.capture());
+        assertThat(workSpec.id, is(captor.getValue().id));
+    }
+
     @Test(expected = IllegalStateException.class)
     public void test_rethrowForNonRecoverableSqliteExceptions() {
         ForceStopRunnable runnable = spy(mRunnable);
+        doNothing().when(runnable).sleep(anyLong());
         when(runnable.cleanUp())
                 .thenThrow(new SQLiteCantOpenDatabaseException("Cannot open database."));
         runnable.run();
+    }
+
+    @Test
+    public void test_initializationExceptionHandler() {
+        InitializationExceptionHandler handler = mock(InitializationExceptionHandler.class);
+        Configuration configuration = new Configuration.Builder(mConfiguration)
+                .setInitializationExceptionHandler(handler)
+                .build();
+
+        when(mWorkManager.getConfiguration()).thenReturn(configuration);
+        ForceStopRunnable runnable = spy(mRunnable);
+        doNothing().when(runnable).sleep(anyLong());
+        when(runnable.cleanUp())
+                .thenThrow(new SQLiteCantOpenDatabaseException("Cannot open database."));
+        runnable.run();
+        verify(runnable, times(MAX_ATTEMPTS - 1)).sleep(anyLong());
+        verify(runnable, times(MAX_ATTEMPTS)).forceStopRunnable();
+        verify(handler, times(1)).handleException(any(Throwable.class));
     }
 }

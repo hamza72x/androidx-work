@@ -59,7 +59,7 @@ class WorkInfoTest {
     fun addAndRemoveWork() = runBlocking {
         inspectWorkManager()
         val request = OneTimeWorkRequestBuilder<EmptyWorker>().build()
-        testEnvironment.workManager.enqueue(request)
+        testEnvironment.workManager.enqueue(request).await()
         testEnvironment.receiveEvent().let { event ->
             assertThat(event.hasWorkAdded()).isTrue()
             assertThat(event.workAdded.work.id).isEqualTo(request.stringId)
@@ -77,7 +77,7 @@ class WorkInfoTest {
     fun sendWorkAddedEvent() = runBlocking {
         inspectWorkManager()
         val request = OneTimeWorkRequestBuilder<EmptyWorker>().build()
-        testEnvironment.workManager.enqueue(request)
+        testEnvironment.workManager.enqueue(request).await()
         testEnvironment.receiveEvent().let { event ->
             assertThat(event.hasWorkAdded()).isTrue()
             val workInfo = event.workAdded.work
@@ -90,7 +90,7 @@ class WorkInfoTest {
     fun updateWorkInfoState() = runBlocking {
         inspectWorkManager()
         val request = OneTimeWorkRequestBuilder<EmptyWorker>().build()
-        testEnvironment.workManager.enqueue(request)
+        testEnvironment.workManager.enqueue(request).await()
         testEnvironment.receiveFilteredEvent { event ->
             event.hasWorkUpdated() && event.workUpdated.state == State.SUCCEEDED
         }.let { event ->
@@ -102,7 +102,7 @@ class WorkInfoTest {
     fun updateWorkInfoRetryCount() = runBlocking {
         inspectWorkManager()
         val request = OneTimeWorkRequestBuilder<EmptyWorker>().build()
-        testEnvironment.workManager.enqueue(request)
+        testEnvironment.workManager.enqueue(request).await()
         testEnvironment.receiveFilteredEvent { event ->
             event.hasWorkUpdated() && event.workUpdated.runAttemptCount == 1
         }.let { event ->
@@ -114,7 +114,7 @@ class WorkInfoTest {
     fun updateWorkInfoOutputData() = runBlocking {
         inspectWorkManager()
         val request = OneTimeWorkRequestBuilder<EmptyWorker>().build()
-        testEnvironment.workManager.enqueue(request)
+        testEnvironment.workManager.enqueue(request).await()
         testEnvironment.receiveFilteredEvent { event ->
             event.hasWorkUpdated() &&
                 event.workUpdated.hasData() &&
@@ -133,7 +133,7 @@ class WorkInfoTest {
     fun updateWorkInfoScheduleRequestedAt() = runBlocking {
         inspectWorkManager()
         val request = OneTimeWorkRequestBuilder<EmptyWorker>().build()
-        testEnvironment.workManager.enqueue(request)
+        testEnvironment.workManager.enqueue(request).await()
         testEnvironment.receiveFilteredEvent { event ->
             event.hasWorkUpdated() &&
                 event.workUpdated.scheduleRequestedAt != WorkSpec.SCHEDULE_NOT_REQUESTED_YET
@@ -152,7 +152,7 @@ class WorkInfoTest {
             .first()
             .asEntryHook
             .onEntry(workContinuation, listOf())
-        workContinuation.enqueue()
+        workContinuation.enqueue().await()
 
         testEnvironment.receiveEvent().let { event ->
             val workInfo = event.workAdded.work
@@ -175,6 +175,7 @@ class WorkInfoTest {
         testEnvironment.workManager.beginUniqueWork(name, ExistingWorkPolicy.REPLACE, work1)
             .then(work2)
             .enqueue()
+            .await()
         for (count in 1..2) {
             testEnvironment.receiveEvent().let { event ->
                 assertThat(event.hasWorkAdded()).isTrue()
@@ -197,7 +198,7 @@ class WorkInfoTest {
     fun cancelWork() = runBlocking {
         inspectWorkManager()
         val request = OneTimeWorkRequestBuilder<IdleWorker>().build()
-        testEnvironment.workManager.enqueue(request)
+        testEnvironment.workManager.enqueue(request).await()
 
         val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand
             .newBuilder()

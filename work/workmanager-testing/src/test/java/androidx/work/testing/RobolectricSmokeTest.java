@@ -38,7 +38,7 @@ import org.robolectric.annotation.internal.DoNotInstrument;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
-@Config(manifest = Config.NONE)
+@Config(manifest = Config.NONE, maxSdk = 30) // Robolectric uses wrong maxSdk by default
 @RunWith(RobolectricTestRunner.class)
 @DoNotInstrument
 public class RobolectricSmokeTest {
@@ -51,7 +51,7 @@ public class RobolectricSmokeTest {
         WorkManagerTestInitHelper.initializeTestWorkManager(mContext);
     }
 
-    @Test
+    @Test(timeout = 10000)
     public void testWorker_shouldSucceedSynchronously()
             throws InterruptedException, ExecutionException {
         WorkRequest request = new OneTimeWorkRequest.Builder(TestWorker.class).build();

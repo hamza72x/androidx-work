@@ -52,18 +52,19 @@ public class PackageManagerHelper {
                             : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                     PackageManager.DONT_KILL_APP);
 
-            Logger.get().debug(TAG,
-                    String.format("%s %s", klazz.getName(), (enabled ? "enabled" : "disabled")));
+            Logger.get().debug(TAG, klazz.getName() + " " + (enabled ? "enabled" : "disabled"));
         } catch (Exception exception) {
-            Logger.get().debug(TAG, String.format("%s could not be %s", klazz.getName(),
-                    (enabled ? "enabled" : "disabled")), exception);
+            Logger.get().debug(TAG,
+                    klazz.getName() + "could not be " + (enabled ? "enabled" : "disabled"),
+                    exception);
         }
     }
 
     /**
      * Convenience method for {@link #isComponentExplicitlyEnabled(Context, String)}
      */
-    public static boolean isComponentExplicitlyEnabled(Context context, Class<?> klazz) {
+    public static boolean isComponentExplicitlyEnabled(@NonNull Context context,
+            @NonNull Class<?> klazz) {
         return isComponentExplicitlyEnabled(context, klazz.getName());
     }
 
@@ -74,7 +75,8 @@ public class PackageManagerHelper {
      * @param className {@link Class#getName()} name of component
      * @return {@code true} if component is explicitly enabled
      */
-    public static boolean isComponentExplicitlyEnabled(Context context, String className) {
+    public static boolean isComponentExplicitlyEnabled(@NonNull Context context,
+            @NonNull String className) {
         PackageManager packageManager = context.getPackageManager();
         ComponentName componentName = new ComponentName(context, className);
         int state = packageManager.getComponentEnabledSetting(componentName);

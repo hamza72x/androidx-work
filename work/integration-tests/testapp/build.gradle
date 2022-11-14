@@ -46,18 +46,12 @@ android {
             useSupportLibrary = true
         }
     }
+    namespace "androidx.work.integration.testapp"
 }
 
 dependencies {
-    // Using -Pandroidx.useMaxDepVersions does not use the right version of the annotation processor
-    // Remove this workaround after b/127495641 is fixed
-    if (project.hasProperty("androidx.useMaxDepVersions")) {
-        annotationProcessor(projectOrArtifact(":room:room-compiler"))
-        implementation(projectOrArtifact(":room:room-runtime"))
-    } else {
-        annotationProcessor("androidx.room:room-compiler:2.2.5")
-        implementation("androidx.room:room-runtime:2.2.5")
-    }
+    annotationProcessor(projectOrArtifact(":room:room-compiler"))
+    implementation(projectOrArtifact(":room:room-runtime"))
 
     implementation(libs.constraintLayout)
     // Fix for BuildCompat.isAtleastS()
@@ -70,4 +64,10 @@ dependencies {
     implementation("androidx.arch.core:core-runtime:2.1.0")
     implementation("androidx.recyclerview:recyclerview:1.1.0")
     implementation(libs.material)
+}
+
+// Enable parameter names to support Room incremental when its a project() dep.
+// See b/198431380
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-parameters"
 }

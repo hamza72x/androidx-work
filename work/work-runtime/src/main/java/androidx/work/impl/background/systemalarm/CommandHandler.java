@@ -26,12 +26,17 @@ import androidx.annotation.RestrictTo;
 import androidx.annotation.WorkerThread;
 import androidx.work.Logger;
 import androidx.work.impl.ExecutionListener;
+import androidx.work.impl.StartStopToken;
+import androidx.work.impl.StartStopTokens;
 import androidx.work.impl.WorkDatabase;
 import androidx.work.impl.WorkManagerImpl;
+import androidx.work.impl.model.WorkGenerationalId;
 import androidx.work.impl.model.WorkSpec;
 import androidx.work.impl.model.WorkSpecDao;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,24 +59,36 @@ public class CommandHandler implements ExecutionListener {
 
     // keys
     private static final String KEY_WORKSPEC_ID = "KEY_WORKSPEC_ID";
+    private static final String KEY_WORKSPEC_GENERATION = "KEY_WORKSPEC_GENERATION";
     private static final String KEY_NEEDS_RESCHEDULE = "KEY_NEEDS_RESCHEDULE";
 
     // constants
     static final long WORK_PROCESSING_TIME_IN_MS = 10 * 60 * 1000L;
 
     // utilities
-    static Intent createScheduleWorkIntent(@NonNull Context context, @NonNull String workSpecId) {
+    static Intent createScheduleWorkIntent(@NonNull Context context,
+            @NonNull WorkGenerationalId id) {
         Intent intent = new Intent(context, SystemAlarmService.class);
         intent.setAction(ACTION_SCHEDULE_WORK);
-        intent.putExtra(KEY_WORKSPEC_ID, workSpecId);
+        return writeWorkGenerationalId(intent, id);
+    }
+
+    private static Intent writeWorkGenerationalId(@NonNull Intent intent,
+            @NonNull WorkGenerationalId id) {
+        intent.putExtra(KEY_WORKSPEC_ID, id.getWorkSpecId());
+        intent.putExtra(KEY_WORKSPEC_GENERATION, id.getGeneration());
         return intent;
     }
 
-    static Intent createDelayMetIntent(@NonNull Context context, @NonNull String workSpecId) {
+    static WorkGenerationalId readWorkGenerationalId(@NonNull Intent intent) {
+        return new WorkGenerationalId(intent.getStringExtra(KEY_WORKSPEC_ID),
+                intent.getIntExtra(KEY_WORKSPEC_GENERATION, 0));
+    }
+
+    static Intent createDelayMetIntent(@NonNull Context context, @NonNull WorkGenerationalId id) {
         Intent intent = new Intent(context, SystemAlarmService.class);
         intent.setAction(ACTION_DELAY_MET);
-        intent.putExtra(KEY_WORKSPEC_ID, workSpecId);
-        return intent;
+        return writeWorkGenerationalId(intent, id);
     }
 
     static Intent createStopWorkIntent(@NonNull Context context, @NonNull String workSpecId) {
@@ -79,6 +96,11 @@ public class CommandHandler implements ExecutionListener {
         intent.setAction(ACTION_STOP_WORK);
         intent.putExtra(KEY_WORKSPEC_ID, workSpecId);
         return intent;
+    }
+    static Intent createStopWorkIntent(@NonNull Context context, @NonNull WorkGenerationalId id) {
+        Intent intent = new Intent(context, SystemAlarmService.class);
+        intent.setAction(ACTION_STOP_WORK);
+        return writeWorkGenerationalId(intent, id);
     }
 
     static Intent createConstraintsChangedIntent(@NonNull Context context) {
@@ -95,35 +117,36 @@ public class CommandHandler implements ExecutionListener {
 
     static Intent createExecutionCompletedIntent(
             @NonNull Context context,
-            @NonNull String workSpecId,
+            @NonNull WorkGenerationalId id,
             boolean needsReschedule) {
-
         Intent intent = new Intent(context, SystemAlarmService.class);
         intent.setAction(ACTION_EXECUTION_COMPLETED);
-        intent.putExtra(KEY_WORKSPEC_ID, workSpecId);
         intent.putExtra(KEY_NEEDS_RESCHEDULE, needsReschedule);
-        return intent;
+        return writeWorkGenerationalId(intent, id);
     }
 
     // members
     private final Context mContext;
-    private final Map<String, ExecutionListener> mPendingDelayMet;
+    private final Map<WorkGenerationalId, DelayMetCommandHandler> mPendingDelayMet;
     private final Object mLock;
+    private final StartStopTokens mStartStopTokens;
 
-    CommandHandler(@NonNull Context context) {
+    CommandHandler(@NonNull Context context, @NonNull StartStopTokens startStopTokens) {
         mContext = context;
+        mStartStopTokens = startStopTokens;
         mPendingDelayMet = new HashMap<>();
         mLock = new Object();
     }
 
     @Override
-    public void onExecuted(@NonNull String workSpecId, boolean needsReschedule) {
+    public void onExecuted(@NonNull WorkGenerationalId id, boolean needsReschedule) {
         synchronized (mLock) {
             // This listener is only necessary for knowing when a pending work is complete.
             // Delegate to the underlying execution listener itself.
-            ExecutionListener listener = mPendingDelayMet.remove(workSpecId);
+            DelayMetCommandHandler listener = mPendingDelayMet.remove(id);
+            mStartStopTokens.remove(id);
             if (listener != null) {
-                listener.onExecuted(workSpecId, needsReschedule);
+                listener.onExecuted(needsReschedule);
             }
         }
     }
@@ -161,9 +184,7 @@ public class CommandHandler implements ExecutionListener {
             Bundle extras = intent.getExtras();
             if (!hasKeys(extras, KEY_WORKSPEC_ID)) {
                 Logger.get().error(TAG,
-                        String.format("Invalid request for %s, requires %s.",
-                                action,
-                                KEY_WORKSPEC_ID));
+                        "Invalid request for " + action + " , requires " + KEY_WORKSPEC_ID + " .");
             } else {
                 if (ACTION_SCHEDULE_WORK.equals(action)) {
                     handleScheduleWorkIntent(intent, startId, dispatcher);
@@ -174,7 +195,7 @@ public class CommandHandler implements ExecutionListener {
                 } else if (ACTION_EXECUTION_COMPLETED.equals(action)) {
                     handleExecutionCompleted(intent, startId);
                 } else {
-                    Logger.get().warning(TAG, String.format("Ignoring intent %s", intent));
+                    Logger.get().warning(TAG, "Ignoring intent " + intent);
                 }
             }
         }
@@ -185,9 +206,8 @@ public class CommandHandler implements ExecutionListener {
             int startId,
             @NonNull SystemAlarmDispatcher dispatcher) {
 
-        Bundle extras = intent.getExtras();
-        String workSpecId = extras.getString(KEY_WORKSPEC_ID);
-        Logger.get().debug(TAG, String.format("Handling schedule work for %s", workSpecId));
+        WorkGenerationalId id = readWorkGenerationalId(intent);
+        Logger.get().debug(TAG, "Handling schedule work for " + id);
 
         WorkManagerImpl workManager = dispatcher.getWorkManager();
         WorkDatabase workDatabase = workManager.getWorkDatabase();
@@ -195,7 +215,7 @@ public class CommandHandler implements ExecutionListener {
 
         try {
             WorkSpecDao workSpecDao = workDatabase.workSpecDao();
-            WorkSpec workSpec = workSpecDao.getWorkSpec(workSpecId);
+            WorkSpec workSpec = workSpecDao.getWorkSpec(id.getWorkSpecId());
 
             // It is possible that this WorkSpec got cancelled/pruned since this isn't part of
             // the same database transaction as marking it enqueued (for example, if we using
@@ -206,7 +226,7 @@ public class CommandHandler implements ExecutionListener {
             // See b/114705286.
             if (workSpec == null) {
                 Logger.get().warning(TAG,
-                        "Skipping scheduling " + workSpecId + " because it's no longer in "
+                        "Skipping scheduling " + id + " because it's no longer in "
                         + "the DB");
                 return;
             } else if (workSpec.state.isFinished()) {
@@ -214,7 +234,7 @@ public class CommandHandler implements ExecutionListener {
                 // if the process gets killed, the Alarm is necessary to pick up the execution of
                 // Work.
                 Logger.get().warning(TAG,
-                        "Skipping scheduling " + workSpecId + "because it is finished.");
+                        "Skipping scheduling " + id + "because it is finished.");
                 return;
             }
 
@@ -224,23 +244,22 @@ public class CommandHandler implements ExecutionListener {
 
             if (!workSpec.hasConstraints()) {
                 Logger.get().debug(TAG,
-                        String.format("Setting up Alarms for %s at %s", workSpecId, triggerAt));
-                Alarms.setAlarm(mContext, dispatcher.getWorkManager(), workSpecId, triggerAt);
+                        "Setting up Alarms for " + id + "at " + triggerAt);
+                Alarms.setAlarm(mContext, workDatabase, id, triggerAt);
             } else {
                 // Schedule an alarm irrespective of whether all constraints matched.
                 Logger.get().debug(TAG,
-                        String.format("Opportunistically setting an alarm for %s at %s", workSpecId,
-                                triggerAt));
+                        "Opportunistically setting an alarm for " + id + "at " + triggerAt);
                 Alarms.setAlarm(
                         mContext,
-                        dispatcher.getWorkManager(),
-                        workSpecId,
+                        workDatabase,
+                        id,
                         triggerAt);
 
                 // Schedule an update for constraint proxies
                 // This in turn sets enables us to track changes in constraints
                 Intent constraintsUpdate = CommandHandler.createConstraintsChangedIntent(mContext);
-                dispatcher.postOnMainThread(
+                dispatcher.getTaskExecutor().getMainThreadExecutor().execute(
                         new SystemAlarmDispatcher.AddRunnable(
                                 dispatcher,
                                 constraintsUpdate,
@@ -258,22 +277,21 @@ public class CommandHandler implements ExecutionListener {
             int startId,
             @NonNull SystemAlarmDispatcher dispatcher) {
 
-        Bundle extras = intent.getExtras();
         synchronized (mLock) {
-            String workSpecId = extras.getString(KEY_WORKSPEC_ID);
-            Logger.get().debug(TAG, String.format("Handing delay met for %s", workSpecId));
+            WorkGenerationalId id = readWorkGenerationalId(intent);
+            Logger.get().debug(TAG, "Handing delay met for " + id);
 
             // Check to see if we are already handling an ACTION_DELAY_MET for the WorkSpec.
             // If we are, then there is nothing for us to do.
-            if (!mPendingDelayMet.containsKey(workSpecId)) {
+            if (!mPendingDelayMet.containsKey(id)) {
                 DelayMetCommandHandler delayMetCommandHandler =
-                        new DelayMetCommandHandler(mContext, startId, workSpecId, dispatcher);
-                mPendingDelayMet.put(workSpecId, delayMetCommandHandler);
+                        new DelayMetCommandHandler(mContext, startId,
+                                dispatcher, mStartStopTokens.tokenFor(id));
+                mPendingDelayMet.put(id, delayMetCommandHandler);
                 delayMetCommandHandler.handleProcessWork();
             } else {
-                Logger.get().debug(TAG,
-                        String.format("WorkSpec %s is already being handled for ACTION_DELAY_MET",
-                                workSpecId));
+                Logger.get().debug(TAG, "WorkSpec " + id
+                        + " is is already being handled for ACTION_DELAY_MET");
             }
         }
     }
@@ -284,20 +302,34 @@ public class CommandHandler implements ExecutionListener {
 
         Bundle extras = intent.getExtras();
         String workSpecId = extras.getString(KEY_WORKSPEC_ID);
-        Logger.get().debug(TAG, String.format("Handing stopWork work for %s", workSpecId));
+        List<StartStopToken> tokens;
+        if (extras.containsKey(KEY_WORKSPEC_GENERATION)) {
+            int generation = extras.getInt(KEY_WORKSPEC_GENERATION);
+            tokens = new ArrayList<>(1);
+            StartStopToken id = mStartStopTokens.remove(
+                    new WorkGenerationalId(workSpecId, generation));
+            if (id != null) {
+                tokens.add(id);
+            }
+        } else {
+            tokens = mStartStopTokens.remove(workSpecId);
+        }
+        for (StartStopToken token: tokens) {
+            Logger.get().debug(TAG, "Handing stopWork work for " + workSpecId);
+            dispatcher.getWorkManager().stopWork(token);
+            Alarms.cancelAlarm(mContext,
+                    dispatcher.getWorkManager().getWorkDatabase(), token.getId());
 
-        dispatcher.getWorkManager().stopWork(workSpecId);
-        Alarms.cancelAlarm(mContext, dispatcher.getWorkManager(), workSpecId);
-
-        // Notify dispatcher, so it can clean up.
-        dispatcher.onExecuted(workSpecId, false /* never reschedule */);
+            // Notify dispatcher, so it can clean up.
+            dispatcher.onExecuted(token.getId(), false /* never reschedule */);
+        }
     }
 
     private void handleConstraintsChanged(
             @NonNull Intent intent, int startId,
             @NonNull SystemAlarmDispatcher dispatcher) {
 
-        Logger.get().debug(TAG, String.format("Handling constraints changed %s", intent));
+        Logger.get().debug(TAG, "Handling constraints changed " + intent);
         // Constraints changed command handler is synchronous. No cleanup
         // is necessary.
         ConstraintsCommandHandler changedCommandHandler =
@@ -310,24 +342,23 @@ public class CommandHandler implements ExecutionListener {
             int startId,
             @NonNull SystemAlarmDispatcher dispatcher) {
 
-        Logger.get().debug(TAG, String.format("Handling reschedule %s, %s", intent, startId));
+        Logger.get().debug(TAG, "Handling reschedule " + intent + ", " + startId);
         dispatcher.getWorkManager().rescheduleEligibleWork();
     }
 
     private void handleExecutionCompleted(
             @NonNull Intent intent,
             int startId) {
-
-        Bundle extras = intent.getExtras();
-        String workSpecId = extras.getString(KEY_WORKSPEC_ID);
-        boolean needsReschedule = extras.getBoolean(KEY_NEEDS_RESCHEDULE);
+        WorkGenerationalId id = readWorkGenerationalId(intent);
+        boolean needsReschedule = intent.getExtras().getBoolean(KEY_NEEDS_RESCHEDULE);
         Logger.get().debug(
                 TAG,
-                String.format("Handling onExecutionCompleted %s, %s", intent, startId));
+                "Handling onExecutionCompleted " + intent + ", " + startId);
         // Delegate onExecuted() to the command handler.
-        onExecuted(workSpecId, needsReschedule);
+        onExecuted(id, needsReschedule);
     }
 
+    @SuppressWarnings("deprecation")
     private static boolean hasKeys(@Nullable Bundle bundle, @NonNull String... keys) {
         if (bundle == null || bundle.isEmpty()) {
             return false;

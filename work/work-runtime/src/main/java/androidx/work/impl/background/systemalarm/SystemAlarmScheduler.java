@@ -16,6 +16,8 @@
 
 package androidx.work.impl.background.systemalarm;
 
+import static androidx.work.impl.model.WorkSpecKt.generationalId;
+
 import android.content.Context;
 import android.content.Intent;
 
@@ -64,8 +66,9 @@ public class SystemAlarmScheduler implements Scheduler {
      * times to drift to guarantee that the interval duration always elapses between alarms.
      */
     private void scheduleWorkSpec(@NonNull WorkSpec workSpec) {
-        Logger.get().debug(TAG, String.format("Scheduling work with workSpecId %s", workSpec.id));
-        Intent scheduleIntent = CommandHandler.createScheduleWorkIntent(mContext, workSpec.id);
+        Logger.get().debug(TAG, "Scheduling work with workSpecId " + workSpec.id);
+        Intent scheduleIntent = CommandHandler.createScheduleWorkIntent(mContext,
+                generationalId(workSpec));
         mContext.startService(scheduleIntent);
     }
 }

@@ -59,7 +59,7 @@ public class Schedulers {
     public static void schedule(
             @NonNull Configuration configuration,
             @NonNull WorkDatabase workDatabase,
-            List<Scheduler> schedulers) {
+            @Nullable List<Scheduler> schedulers) {
         if (schedulers == null || schedulers.size() == 0) {
             return;
         }
@@ -150,7 +150,7 @@ public class Schedulers {
             Class<?> klass = Class.forName(GCM_SCHEDULER);
             Scheduler scheduler =
                     (Scheduler) klass.getConstructor(Context.class).newInstance(context);
-            Logger.get().debug(TAG, String.format("Created %s", GCM_SCHEDULER));
+            Logger.get().debug(TAG, "Created " + GCM_SCHEDULER);
             return scheduler;
         } catch (Throwable throwable) {
             Logger.get().debug(TAG, "Unable to create GCM Scheduler", throwable);

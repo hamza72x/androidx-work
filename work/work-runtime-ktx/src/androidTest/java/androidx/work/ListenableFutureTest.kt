@@ -28,6 +28,7 @@ import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -81,6 +82,7 @@ class ListenableFutureTest {
         }
     }
 
+    @Ignore // b/203776153
     @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCoroutineScopeCancellation() {

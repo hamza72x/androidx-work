@@ -40,6 +40,7 @@ public final class WorkInfo {
     private @NonNull Data mProgress;
     private int mRunAttemptCount;
 
+    private final int mGeneration;
     /**
      * @hide
      */
@@ -50,13 +51,15 @@ public final class WorkInfo {
             @NonNull Data outputData,
             @NonNull List<String> tags,
             @NonNull Data progress,
-            int runAttemptCount) {
+            int runAttemptCount,
+            int generation) {
         mId = id;
         mState = state;
         mOutputData = outputData;
         mTags = new HashSet<>(tags);
         mProgress = progress;
         mRunAttemptCount = runAttemptCount;
+        mGeneration = generation;
     }
 
     /**
@@ -116,6 +119,24 @@ public final class WorkInfo {
         return mRunAttemptCount;
     }
 
+    /**
+     * Gets the latest generation of this Worker.
+     * <p>
+     * A work has multiple generations, if it was updated via
+     * {@link WorkManager#updateWork(WorkRequest)} or
+     * {@link WorkManager#enqueueUniquePeriodicWork(String,
+     * ExistingPeriodicWorkPolicy, PeriodicWorkRequest)} using
+     * {@link ExistingPeriodicWorkPolicy#UPDATE}.
+     * <p>
+     * If this worker is currently running, it can possibly be of an older generation rather than
+     * returned by this function if an update has happened during an execution of this worker.
+     *
+     * @return a generation of this work.
+     */
+    public int getGeneration() {
+        return mGeneration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -124,6 +145,7 @@ public final class WorkInfo {
         WorkInfo workInfo = (WorkInfo) o;
 
         if (mRunAttemptCount != workInfo.mRunAttemptCount) return false;
+        if (mGeneration != workInfo.mGeneration) return false;
         if (!mId.equals(workInfo.mId)) return false;
         if (mState != workInfo.mState) return false;
         if (!mOutputData.equals(workInfo.mOutputData)) return false;
@@ -139,6 +161,7 @@ public final class WorkInfo {
         result = 31 * result + mTags.hashCode();
         result = 31 * result + mProgress.hashCode();
         result = 31 * result + mRunAttemptCount;
+        result = 31 * result + mGeneration;
         return result;
     }
 

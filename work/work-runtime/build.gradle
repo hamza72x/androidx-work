@@ -94,6 +94,7 @@ dependencies {
     testImplementation(libs.truth)
     testImplementation(libs.robolectric)
     testImplementation(libs.testCoreKtx)
+    testImplementation(libs.kotlinCoroutinesTest)
     lintPublish(project(":work:work-runtime-lint"))
 }
 

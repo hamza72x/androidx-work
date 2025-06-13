@@ -178,7 +178,7 @@ class NetworkRequestConstraintControllerTest {
         val constraints = listOf(buildConstraint(), buildConstraint())
         val initialValueBarriers = listOf(CompletableDeferred<Unit>(), CompletableDeferred<Unit>())
         val asyncResults =
-            constraints.mapIndexed { index, constraint ->
+            constraints.mapIndexed { index, _ ->
                 async(Dispatchers.IO) {
                     val result = CompletableDeferred<ConstraintsState>()
                     controller.track(constraints[index]).take(2).collectIndexed { i, state ->

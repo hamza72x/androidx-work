@@ -33,13 +33,18 @@ import androidx.work.impl.constraints.NetworkRequestConstraintController
 import androidx.work.impl.constraints.WorkConstraintsTracker
 import androidx.work.impl.model.WorkSpec
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
+import org.junit.AssumptionViolatedException
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -54,19 +59,19 @@ class NetworkRequestConstraintControllerTest {
         NetworkRequestConstraintController(connManager = connectivityManager, timeoutMs = 1000)
 
     @Test
-    fun testRequestWifi() = runTest {
-        val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
-        val state =
-            async(Dispatchers.IO) {
-                workConstraintsTracker.track(createWorkSpecWithWifiConstraint("A")).first()
-            }
-        assertThat(state.await()).isEqualTo(ConstraintsState.ConstraintsMet)
-    }
+    fun testRequestWifi() =
+        runBlockingWithWifi(enabled = true) {
+            val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
+            val state =
+                async(Dispatchers.IO) {
+                    workConstraintsTracker.track(createWorkSpecWithWifiConstraint("A")).first()
+                }
+            assertThat(state.await()).isEqualTo(ConstraintsState.ConstraintsMet)
+        }
 
     @Test
-    fun testRequestWifiTimeout() = runTest {
-        toggleWifi(false)
-        try {
+    fun testRequestWifiTimeout() =
+        runBlockingWithWifi(enabled = false) {
             val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
             val state =
                 async(Dispatchers.IO) {
@@ -74,8 +79,36 @@ class NetworkRequestConstraintControllerTest {
                 }
             assertThat(state.await())
                 .isEqualTo(ConstraintsState.ConstraintsNotMet(STOP_REASON_CONSTRAINT_CONNECTIVITY))
-        } finally {
-            toggleWifi(true)
+        }
+
+    @Test
+    fun testMultipleTrackers() =
+        runBlockingWithWifi(enabled = true) {
+            val states =
+                List(5) {
+                    val spec = createWorkSpecWithWifiConstraint("$it")
+                    val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
+                    async(Dispatchers.IO) { workConstraintsTracker.track(spec).first() }
+                }
+            states.awaitAll().forEachIndexed { index, state ->
+                assertWithMessage("Tracker $index did not have constraints met")
+                    .that(state)
+                    .isEqualTo(ConstraintsState.ConstraintsMet)
+            }
+        }
+
+    @Test
+    fun testTooManyTrackers() =
+        runBlockingWithWifi(enabled = true) {
+            // Current OS limit of network callback is 100 per app, we register more to test
+            // https://cs.android.com/android/platform/superproject/main/+/main:packages/modules/Connectivity/service/src/com/android/server/ConnectivityService.java;bpv=0;bpt=1?q=MAX_NETWORK_REQUESTS_PER_UID&sq=&ss=android
+            val states =
+                List(120) {
+                    val spec = createWorkSpecWithWifiConstraint("$it")
+                    val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
+                    async(Dispatchers.IO) { workConstraintsTracker.track(spec).first() }
+                }
+            states.awaitAll()
         }
 
     private fun isWifiConnected(): Boolean {
@@ -87,17 +120,17 @@ class NetworkRequestConstraintControllerTest {
             currentCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
-    @Test
-    fun testTooManyTrackers() = runTest {
-        // Current OS limit of network callback is 100 per app, we register more to test
-        // https://cs.android.com/android/platform/superproject/main/+/main:packages/modules/Connectivity/service/src/com/android/server/ConnectivityService.java;bpv=0;bpt=1?q=MAX_NETWORK_REQUESTS_PER_UID&sq=&ss=android
-        val states =
-            List(120) {
-                val spec = createWorkSpecWithWifiConstraint("$it")
-                val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
-                async(Dispatchers.IO) { workConstraintsTracker.track(spec).first() }
-            }
-        states.awaitAll()
+    private fun runBlockingWithWifi(
+        enabled: Boolean,
+        block: suspend CoroutineScope.() -> Unit,
+    ): Unit = runBlocking {
+        val initialState = isWifiConnected()
+        toggleWifi(enabled)
+        try {
+            block()
+        } finally {
+            toggleWifi(initialState)
+        }
     }
 
     private suspend fun toggleWifi(enable: Boolean) {
@@ -137,7 +170,7 @@ class NetworkRequestConstraintControllerTest {
                     Constraints.Builder()
                         .setRequiredNetworkRequest(
                             createWifiNetworkRequest(),
-                            NetworkType.CONNECTED
+                            NetworkType.CONNECTED,
                         )
                         .build()
             )

@@ -77,6 +77,14 @@ class NetworkRequestConstraintControllerTest {
         } finally {
             toggleWifi(true)
         }
+
+    private fun isWifiConnected(): Boolean {
+        val current = connectivityManager.activeNetwork
+        val currentCapabilities = connectivityManager.getNetworkCapabilities(current)
+        return currentCapabilities != null &&
+            currentCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
+            currentCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            currentCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
     @Test
@@ -93,35 +101,33 @@ class NetworkRequestConstraintControllerTest {
     }
 
     private suspend fun toggleWifi(enable: Boolean) {
-        // check current network for wifi
-        val current = connectivityManager.activeNetwork
-        val currentCapabilities = connectivityManager.getNetworkCapabilities(current)
-        val hasWifi =
-            currentCapabilities != null &&
-                currentCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-        if (enable == hasWifi) {
-            // already enabled / disabled
-            return
-        }
-
         // toggle wifi via adb shell cmd
         UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
             .executeShellCommand("svc wifi ${if (enable) "enable" else "disable"}")
-        // wait for toggle
-        suspendCancellableCoroutine { cont ->
-            val callback =
-                object : ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: Network) {
-                        if (enable) cont.resume(Unit)
-                    }
 
-                    override fun onLost(network: Network) {
-                        if (!enable) cont.resume(Unit)
+        // wait for toggle
+        withTimeoutOrNull(5.seconds) {
+            suspendCancellableCoroutine<Unit> { cont ->
+                val callback =
+                    object : ConnectivityManager.NetworkCallback() {
+                        override fun onAvailable(network: Network) {
+                            if (enable && cont.isActive) cont.resume(Unit)
+                        }
+
+                        override fun onLost(network: Network) {
+                            if (!enable && cont.isActive) cont.resume(Unit)
+                        }
                     }
+                connectivityManager.registerNetworkCallback(createWifiNetworkRequest(), callback)
+                if (enable == isWifiConnected() && cont.isActive) {
+                    // already enabled / disabled
+                    cont.resume(Unit)
                 }
-            connectivityManager.registerNetworkCallback(createWifiNetworkRequest(), callback)
-            cont.invokeOnCancellation { connectivityManager.unregisterNetworkCallback(callback) }
-        }
+                cont.invokeOnCancellation {
+                    connectivityManager.unregisterNetworkCallback(callback)
+                }
+            }
+        } ?: throw AssumptionViolatedException("Timeout waiting for wifi toggle.")
     }
 
     private fun createWorkSpecWithWifiConstraint(id: String): WorkSpec {
@@ -139,7 +145,8 @@ class NetworkRequestConstraintControllerTest {
 
     private fun createWifiNetworkRequest() =
         NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             .build()
 }

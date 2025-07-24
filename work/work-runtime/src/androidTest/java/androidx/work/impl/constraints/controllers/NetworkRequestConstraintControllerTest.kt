@@ -33,13 +33,18 @@ import androidx.work.impl.constraints.NetworkRequestConstraintController
 import androidx.work.impl.constraints.WorkConstraintsTracker
 import androidx.work.impl.model.WorkSpec
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
+import org.junit.AssumptionViolatedException
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -54,19 +59,19 @@ class NetworkRequestConstraintControllerTest {
         NetworkRequestConstraintController(connManager = connectivityManager, timeoutMs = 1000)
 
     @Test
-    fun testRequestWifi() = runTest {
-        val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
-        val state =
-            async(Dispatchers.IO) {
-                workConstraintsTracker.track(createWorkSpecWithWifiConstraint("A")).first()
-            }
-        assertThat(state.await()).isEqualTo(ConstraintsState.ConstraintsMet)
-    }
+    fun testRequestWifi() =
+        runBlockingWithWifi(enabled = true) {
+            val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
+            val state =
+                async(Dispatchers.IO) {
+                    workConstraintsTracker.track(createWorkSpecWithWifiConstraint("A")).first()
+                }
+            assertThat(state.await()).isEqualTo(ConstraintsState.ConstraintsMet)
+        }
 
     @Test
-    fun testRequestWifiTimeout() = runTest {
-        toggleWifi(false)
-        try {
+    fun testRequestWifiTimeout() =
+        runBlockingWithWifi(enabled = false) {
             val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
             val state =
                 async(Dispatchers.IO) {
@@ -74,54 +79,88 @@ class NetworkRequestConstraintControllerTest {
                 }
             assertThat(state.await())
                 .isEqualTo(ConstraintsState.ConstraintsNotMet(STOP_REASON_CONSTRAINT_CONNECTIVITY))
-        } finally {
-            toggleWifi(true)
         }
-    }
 
     @Test
-    fun testTooManyTrackers() = runTest {
-        // Current OS limit of network callback is 100 per app, we register more to test
-        // https://cs.android.com/android/platform/superproject/main/+/main:packages/modules/Connectivity/service/src/com/android/server/ConnectivityService.java;bpv=0;bpt=1?q=MAX_NETWORK_REQUESTS_PER_UID&sq=&ss=android
-        val states =
-            List(120) {
-                val spec = createWorkSpecWithWifiConstraint("$it")
-                val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
-                async(Dispatchers.IO) { workConstraintsTracker.track(spec).first() }
+    fun testMultipleTrackers() =
+        runBlockingWithWifi(enabled = true) {
+            val states =
+                List(5) {
+                    val spec = createWorkSpecWithWifiConstraint("$it")
+                    val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
+                    async(Dispatchers.IO) { workConstraintsTracker.track(spec).first() }
+                }
+            states.awaitAll().forEachIndexed { index, state ->
+                assertWithMessage("Tracker $index did not have constraints met")
+                    .that(state)
+                    .isEqualTo(ConstraintsState.ConstraintsMet)
             }
-        states.awaitAll()
+        }
+
+    @Test
+    fun testTooManyTrackers() =
+        runBlockingWithWifi(enabled = true) {
+            // Current OS limit of network callback is 100 per app, we register more to test
+            // https://cs.android.com/android/platform/superproject/main/+/main:packages/modules/Connectivity/service/src/com/android/server/ConnectivityService.java;bpv=0;bpt=1?q=MAX_NETWORK_REQUESTS_PER_UID&sq=&ss=android
+            val states =
+                List(120) {
+                    val spec = createWorkSpecWithWifiConstraint("$it")
+                    val workConstraintsTracker = WorkConstraintsTracker(listOf(controller))
+                    async(Dispatchers.IO) { workConstraintsTracker.track(spec).first() }
+                }
+            states.awaitAll()
+        }
+
+    private fun isWifiConnected(): Boolean {
+        val current = connectivityManager.activeNetwork
+        val currentCapabilities = connectivityManager.getNetworkCapabilities(current)
+        return currentCapabilities != null &&
+            currentCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
+            currentCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            currentCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }
+
+    private fun runBlockingWithWifi(
+        enabled: Boolean,
+        block: suspend CoroutineScope.() -> Unit,
+    ): Unit = runBlocking {
+        val initialState = isWifiConnected()
+        toggleWifi(enabled)
+        try {
+            block()
+        } finally {
+            toggleWifi(initialState)
+        }
     }
 
     private suspend fun toggleWifi(enable: Boolean) {
-        // check current network for wifi
-        val current = connectivityManager.activeNetwork
-        val currentCapabilities = connectivityManager.getNetworkCapabilities(current)
-        val hasWifi =
-            currentCapabilities != null &&
-                currentCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-        if (enable == hasWifi) {
-            // already enabled / disabled
-            return
-        }
-
         // toggle wifi via adb shell cmd
         UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
             .executeShellCommand("svc wifi ${if (enable) "enable" else "disable"}")
-        // wait for toggle
-        suspendCancellableCoroutine { cont ->
-            val callback =
-                object : ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: Network) {
-                        if (enable) cont.resume(Unit)
-                    }
 
-                    override fun onLost(network: Network) {
-                        if (!enable) cont.resume(Unit)
+        // wait for toggle
+        withTimeoutOrNull(5.seconds) {
+            suspendCancellableCoroutine<Unit> { cont ->
+                val callback =
+                    object : ConnectivityManager.NetworkCallback() {
+                        override fun onAvailable(network: Network) {
+                            if (enable && cont.isActive) cont.resume(Unit)
+                        }
+
+                        override fun onLost(network: Network) {
+                            if (!enable && cont.isActive) cont.resume(Unit)
+                        }
                     }
+                connectivityManager.registerNetworkCallback(createWifiNetworkRequest(), callback)
+                if (enable == isWifiConnected() && cont.isActive) {
+                    // already enabled / disabled
+                    cont.resume(Unit)
                 }
-            connectivityManager.registerNetworkCallback(createWifiNetworkRequest(), callback)
-            cont.invokeOnCancellation { connectivityManager.unregisterNetworkCallback(callback) }
-        }
+                cont.invokeOnCancellation {
+                    connectivityManager.unregisterNetworkCallback(callback)
+                }
+            }
+        } ?: throw AssumptionViolatedException("Timeout waiting for wifi toggle.")
     }
 
     private fun createWorkSpecWithWifiConstraint(id: String): WorkSpec {
@@ -131,7 +170,7 @@ class NetworkRequestConstraintControllerTest {
                     Constraints.Builder()
                         .setRequiredNetworkRequest(
                             createWifiNetworkRequest(),
-                            NetworkType.CONNECTED
+                            NetworkType.CONNECTED,
                         )
                         .build()
             )
@@ -139,7 +178,8 @@ class NetworkRequestConstraintControllerTest {
 
     private fun createWifiNetworkRequest() =
         NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             .build()
 }

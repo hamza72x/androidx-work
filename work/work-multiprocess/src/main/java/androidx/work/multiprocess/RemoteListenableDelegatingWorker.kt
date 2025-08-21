@@ -90,6 +90,7 @@ class RemoteListenableDelegatingWorker(
                     ParcelableInterruptRequest(workerParameters.id.toString(), stopReason)
                 val request = ParcelConverters.marshall(interruptRequest)
                 iListenableWorkerImpl.interrupt(request, callback)
+                client.unbindService()
             }
         }
     }

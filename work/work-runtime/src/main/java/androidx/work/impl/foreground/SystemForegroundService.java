@@ -28,13 +28,14 @@ import android.content.Intent;
 import android.os.Build;
 
 import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.annotation.RestrictTo;
 import androidx.lifecycle.LifecycleService;
 import androidx.work.Logger;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  */
@@ -44,8 +45,7 @@ public class SystemForegroundService extends LifecycleService implements
 
     private static final String TAG = Logger.tagWithPrefix("SystemFgService");
 
-    @Nullable
-    private static SystemForegroundService sForegroundService = null;
+    private static @Nullable SystemForegroundService sForegroundService = null;
 
     private boolean mIsShutdown;
 
@@ -136,7 +136,7 @@ public class SystemForegroundService extends LifecycleService implements
     public void startForeground(
             final int notificationId,
             final int notificationType,
-            @NonNull final Notification notification) {
+            final @NonNull Notification notification) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Api31Impl.startForeground(SystemForegroundService.this, notificationId,
                     notification, notificationType);
@@ -151,7 +151,7 @@ public class SystemForegroundService extends LifecycleService implements
     @MainThread
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     @Override
-    public void notify(final int notificationId, @NonNull final Notification notification) {
+    public void notify(final int notificationId, final @NonNull Notification notification) {
         mNotificationManager.notify(notificationId, notification);
     }
 
@@ -164,8 +164,7 @@ public class SystemForegroundService extends LifecycleService implements
     /**
      * @return The current instance of {@link SystemForegroundService}.
      */
-    @Nullable
-    public static SystemForegroundService getInstance() {
+    public static @Nullable SystemForegroundService getInstance() {
         return sForegroundService;
     }
 

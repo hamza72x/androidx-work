@@ -52,30 +52,30 @@ import kotlinx.coroutines.launch
 
 private typealias OnConstraintState = (ConstraintsState) -> Unit
 
-sealed class ConstraintsState {
-    object ConstraintsMet : ConstraintsState()
+public sealed class ConstraintsState {
+    public object ConstraintsMet : ConstraintsState()
 
-    data class ConstraintsNotMet(@StopReason val reason: Int) : ConstraintsState()
+    public data class ConstraintsNotMet(@StopReason val reason: Int) : ConstraintsState()
 }
 
-fun WorkConstraintsTracker.listen(
+public fun WorkConstraintsTracker.listen(
     spec: WorkSpec,
     dispatcher: CoroutineDispatcher,
-    listener: OnConstraintsStateChangedListener
+    listener: OnConstraintsStateChangedListener,
 ): Job {
     return CoroutineScope(dispatcher).launch {
         track(spec).collect { listener.onConstraintsStateChanged(spec, it) }
     }
 }
 
-fun interface OnConstraintsStateChangedListener {
-    fun onConstraintsStateChanged(workSpec: WorkSpec, state: ConstraintsState)
+public fun interface OnConstraintsStateChangedListener {
+    public fun onConstraintsStateChanged(workSpec: WorkSpec, state: ConstraintsState)
 }
 
-class WorkConstraintsTracker(private val controllers: List<ConstraintController>) {
+public class WorkConstraintsTracker(private val controllers: List<ConstraintController>) {
     /** @param trackers Constraints trackers */
-    constructor(
-        trackers: Trackers,
+    public constructor(
+        trackers: Trackers
     ) : this(
         listOfNotNull(
             BatteryChargingController(trackers.batteryChargingTracker),
@@ -90,7 +90,7 @@ class WorkConstraintsTracker(private val controllers: List<ConstraintController>
         )
     )
 
-    fun track(spec: WorkSpec): Flow<ConstraintsState> {
+    public fun track(spec: WorkSpec): Flow<ConstraintsState> {
         val flows = controllers.filter { it.hasConstraint(spec) }.map { it.track(spec.constraints) }
         return combine(flows) { states ->
                 states.firstOrNull { it != ConstraintsMet } ?: ConstraintsMet
@@ -98,7 +98,7 @@ class WorkConstraintsTracker(private val controllers: List<ConstraintController>
             .distinctUntilChanged()
     }
 
-    fun areAllConstraintsMet(workSpec: WorkSpec): Boolean {
+    public fun areAllConstraintsMet(workSpec: WorkSpec): Boolean {
         val controllers = controllers.filter { it.isCurrentlyConstrained(workSpec) }
 
         if (controllers.isNotEmpty()) {
@@ -106,7 +106,7 @@ class WorkConstraintsTracker(private val controllers: List<ConstraintController>
                 .debug(
                     TAG,
                     "Work ${workSpec.id} constrained by " +
-                        controllers.joinToString { it.javaClass.simpleName }
+                        controllers.joinToString { it.javaClass.simpleName },
                 )
         }
         return controllers.isEmpty()
@@ -116,7 +116,9 @@ class WorkConstraintsTracker(private val controllers: List<ConstraintController>
 private val TAG = Logger.tagWithPrefix("WorkConstraintsTracker")
 
 @RequiresApi(28)
-fun NetworkRequestConstraintController(context: Context): NetworkRequestConstraintController {
+public fun NetworkRequestConstraintController(
+    context: Context
+): NetworkRequestConstraintController {
     val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     return NetworkRequestConstraintController(manager)
 }
@@ -131,7 +133,7 @@ private const val DefaultNetworkRequestTimeoutMs = 1000L
 // TooManyRequestsException error that can occur when too many callbacks are registered
 // (b/231499040).
 @RequiresApi(28)
-class NetworkRequestConstraintController(
+public class NetworkRequestConstraintController(
     private val connManager: ConnectivityManager,
     private val timeoutMs: Long = DefaultNetworkRequestTimeoutMs,
 ) : ConstraintController {
@@ -152,7 +154,7 @@ class NetworkRequestConstraintController(
                     TAG,
                     "NetworkRequestConstraintController didn't receive " +
                         "neither onCapabilitiesChanged/onLost callback, sending " +
-                        "`ConstraintsNotMet` after $timeoutMs ms"
+                        "`ConstraintsNotMet` after $timeoutMs ms",
                 )
             trySend(ConstraintsNotMet(STOP_REASON_CONSTRAINT_CONNECTIVITY))
         }
@@ -166,13 +168,13 @@ class NetworkRequestConstraintController(
                 SharedNetworkCallback.addCallback(
                     connManager = connManager,
                     networkRequest = networkRequest,
-                    onConstraintState = onConstraintState
+                    onConstraintState = onConstraintState,
                 )
             } else {
                 IndividualNetworkCallback.addCallback(
                     connManager = connManager,
                     networkRequest = networkRequest,
-                    onConstraintState = onConstraintState
+                    onConstraintState = onConstraintState,
                 )
             }
         awaitClose { tryUnregister() }
@@ -218,7 +220,7 @@ private constructor(private val onConstraintState: OnConstraintState) :
         fun addCallback(
             connManager: ConnectivityManager,
             networkRequest: NetworkRequest,
-            onConstraintState: OnConstraintState
+            onConstraintState: OnConstraintState,
         ): () -> Unit {
             val networkCallback = IndividualNetworkCallback(onConstraintState)
             var callbackRegistered = false
@@ -236,7 +238,7 @@ private constructor(private val onConstraintState: OnConstraintState) :
                         .debug(
                             TAG,
                             "NetworkRequestConstraintController couldn't register callback",
-                            ex
+                            ex,
                         )
                     onConstraintState(ConstraintsNotMet(STOP_REASON_CONSTRAINT_CONNECTIVITY))
                 } else {
@@ -295,7 +297,7 @@ private object SharedNetworkCallback : ConnectivityManager.NetworkCallback() {
     fun addCallback(
         connManager: ConnectivityManager,
         networkRequest: NetworkRequest,
-        onConstraintState: OnConstraintState
+        onConstraintState: OnConstraintState,
     ): () -> Unit {
         synchronized(requestsLock) {
             val registerCallback = requests.isEmpty()

@@ -240,7 +240,7 @@ public class RemoteListenableWorkerTest {
                 mForegroundProcessor,
                 mDatabase,
                 mDatabase.workSpecDao().getWorkSpec(request.stringId)!!,
-                emptyList()
+                emptyList(),
             )
             .build()
     }
@@ -269,13 +269,13 @@ public class RemoteListenableWorkerTest {
                 mTaskExecutor,
                 mConfiguration.workerFactory,
                 progressUpdater,
-                foregroundUpdater
+                foregroundUpdater,
             )
         val worker: RemoteListenableDelegatingWorker =
             mConfiguration.workerFactory.createWorkerWithDefaultFallback(
                 mContext,
                 RemoteListenableDelegatingWorker::class.java.name,
-                parameters
+                parameters,
             ) as RemoteListenableDelegatingWorker
         return worker
     }

@@ -28,13 +28,12 @@ internal data class NetworkRequestCompat(val wrapped: Any? = null) {
         val TAG = Logger.tagWithPrefix("NetworkRequestCompat")
     }
 
-    @get:RequiresApi(21)
     val networkRequest: NetworkRequest?
         get() = wrapped as NetworkRequest?
 }
 
 @get:RequiresApi(28)
-val NetworkRequest.transportTypesCompat: IntArray
+public val NetworkRequest.transportTypesCompat: IntArray
     get() =
         if (Build.VERSION.SDK_INT >= 31) {
             NetworkRequest31.transportTypes(this)
@@ -56,7 +55,7 @@ val NetworkRequest.transportTypesCompat: IntArray
         }
 
 @get:RequiresApi(28)
-val NetworkRequest.capabilitiesCompat: IntArray
+public val NetworkRequest.capabilitiesCompat: IntArray
     get() =
         if (Build.VERSION.SDK_INT >= 31) {
             NetworkRequest31.capabilities(this)
@@ -107,7 +106,7 @@ private val defaultCapabilities =
     )
 
 @RequiresApi(28)
-object NetworkRequest28 {
+public object NetworkRequest28 {
     internal fun hasCapability(request: NetworkRequest, capability: Int) =
         request.hasCapability(capability)
 
@@ -115,7 +114,7 @@ object NetworkRequest28 {
         request.hasTransport(transport)
 
     @JvmStatic
-    fun createNetworkRequest(capabilities: IntArray, transports: IntArray): NetworkRequest {
+    public fun createNetworkRequest(capabilities: IntArray, transports: IntArray): NetworkRequest {
         val networkRequest = NetworkRequest.Builder()
         capabilities.forEach {
             try {
@@ -145,7 +144,7 @@ object NetworkRequest28 {
                         .warning(
                             NetworkRequestCompat.TAG,
                             "Ignoring removing default capability '$it'",
-                            ex
+                            ex,
                         )
                 }
             }
@@ -157,7 +156,7 @@ object NetworkRequest28 {
 
     internal fun createNetworkRequestCompat(
         capabilities: IntArray,
-        transports: IntArray
+        transports: IntArray,
     ): NetworkRequestCompat {
         return NetworkRequestCompat(createNetworkRequest(capabilities, transports))
     }

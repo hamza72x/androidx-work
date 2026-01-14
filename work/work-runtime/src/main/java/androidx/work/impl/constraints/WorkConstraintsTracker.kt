@@ -269,21 +269,22 @@ private object SharedNetworkCallback : ConnectivityManager.NetworkCallback() {
     private val requests = mutableMapOf<OnConstraintState, NetworkRequest>()
     @GuardedBy("requestsLock") var cachedCapabilities: NetworkCapabilities? = null
     @GuardedBy("requestsLock") var capabilitiesInitialized = false
+    @GuardedBy("requestsLock") private var isBlocked: Boolean = false
 
     override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
         Logger.get().debug(TAG, "NetworkRequestConstraintController onCapabilitiesChanged callback")
+        synchronized(requestsLock) { cachedCapabilities = networkCapabilities }
+        dispatchOnConstraintState()
+    }
+
+    override fun onBlockedStatusChanged(network: Network, blocked: Boolean) {
+        Logger.get()
+            .debug(TAG, "NetworkRequestConstraintController onBlockedStatusChanged callback")
         synchronized(requestsLock) {
-            cachedCapabilities = networkCapabilities
-            requests.entries.forEach { (onConstraintState, request) ->
-                onConstraintState(
-                    if (request.canBeSatisfiedBy(networkCapabilities)) {
-                        ConstraintsMet
-                    } else {
-                        ConstraintsNotMet(STOP_REASON_CONSTRAINT_CONNECTIVITY)
-                    }
-                )
-            }
+            if (isBlocked == blocked) return
+            isBlocked = blocked
         }
+        dispatchOnConstraintState()
     }
 
     override fun onLost(network: Network) {
@@ -292,6 +293,30 @@ private object SharedNetworkCallback : ConnectivityManager.NetworkCallback() {
             cachedCapabilities = null
             requests.keys.forEach { it(ConstraintsNotMet(STOP_REASON_CONSTRAINT_CONNECTIVITY)) }
         }
+    }
+
+    @GuardedBy("requestsLock")
+    private fun dispatchOnConstraintState() {
+        val updatesToDispatch = mutableListOf<Pair<OnConstraintState, ConstraintsState>>()
+        synchronized(requestsLock) {
+            requests.entries.forEach { (onConstraintState, request) ->
+                val state =
+                    if (areNetworkConstraintsSatisfied(request, cachedCapabilities)) {
+                        ConstraintsMet
+                    } else {
+                        ConstraintsNotMet(STOP_REASON_CONSTRAINT_CONNECTIVITY)
+                    }
+                updatesToDispatch.add(onConstraintState to state)
+            }
+        }
+        updatesToDispatch.forEach { (onConstraintState, state) -> onConstraintState(state) }
+    }
+
+    private fun areNetworkConstraintsSatisfied(
+        request: NetworkRequest,
+        capabilities: NetworkCapabilities?,
+    ): Boolean {
+        return !isBlocked && request.canBeSatisfiedBy(capabilities)
     }
 
     fun addCallback(
@@ -312,7 +337,7 @@ private object SharedNetworkCallback : ConnectivityManager.NetworkCallback() {
             Logger.get().debug(TAG, "NetworkRequestConstraintController send initial capabilities")
             val currentCapabilities = connManager.getCurrentNetworkCapabilities()
             onConstraintState(
-                if (networkRequest.canBeSatisfiedBy(currentCapabilities)) {
+                if (areNetworkConstraintsSatisfied(networkRequest, currentCapabilities)) {
                     ConstraintsMet
                 } else {
                     ConstraintsNotMet(STOP_REASON_CONSTRAINT_CONNECTIVITY)
@@ -326,6 +351,7 @@ private object SharedNetworkCallback : ConnectivityManager.NetworkCallback() {
                     Logger.get()
                         .debug(TAG, "NetworkRequestConstraintController unregister shared callback")
                     connManager.unregisterNetworkCallback(this)
+                    isBlocked = false
                     cachedCapabilities = null
                     capabilitiesInitialized = false
                 }
